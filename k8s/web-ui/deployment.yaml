@@ -10,7 +10,7 @@ spec:
       containers:
         - name: kitchen-web-ui
           image: kitchen-web:local
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           livenessProbe:  { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 10 }
           readinessProbe: { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 5 }
