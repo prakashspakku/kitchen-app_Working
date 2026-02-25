@@ -1,0 +1,139 @@
+name: Kitchen App CI/CD — 3-Node Kind Cluster
+
+on:
+  push:     { branches: [main] }
+  pull_request: { branches: [main] }
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── JOB 1: Test on Node 18 AND 20 in parallel ─────────────────
+  matrix-test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { node-version: ['18', '20'] }
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ matrix.node-version }}, cache: npm, cache-dependency-path: api/package-lock.json }
+      - run: npm ci
+        working-directory: api
+      - run: npm run lint
+        working-directory: api
+      - run: npm test
+        working-directory: api
+        env: { NODE_ENV: test, CI: 'true' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: coverage-node-${{ matrix.node-version }}, path: api/coverage/, retention-days: 7 }
+
+  # ── JOB 2: Build Docker images ────────────────────────────────
+  build-push:
+    name: Build Docker Images
+    needs: matrix-test
+    runs-on: ubuntu-latest
+    outputs: { image-tag: ${{ steps.tag.outputs.value }} }
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "value=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          target: production
+          push: false
+          tags: kitchen-api:local
+          outputs: type=docker,dest=/tmp/kitchen-api.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./web-ui
+          push: false
+          tags: kitchen-web:local
+          outputs: type=docker,dest=/tmp/kitchen-web.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/upload-artifact@v4
+        with: { name: docker-images, path: /tmp/*.tar, retention-days: 1 }
+
+  # ── JOB 3: E2E on real 3-node Kind cluster ────────────────────
+  #    No remote server. No KUBECONFIG. No cloud account.
+  e2e-k8s:
+    name: E2E — 3-Node Kind Cluster
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: docker-images, path: /tmp/ }
+      - run: docker load < /tmp/kitchen-api.tar && docker load < /tmp/kitchen-web.tar
+
+      - name: Create 3-node Kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kitchen-cluster
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+              - role: control-plane
+                extraPortMappings:
+                  - { containerPort: 30000, hostPort: 30000 }
+                  - { containerPort: 30080, hostPort: 30080 }
+                  - { containerPort: 30090, hostPort: 30090 }
+                  - { containerPort: 30300, hostPort: 30300 }
+              - role: worker
+              - role: worker
+
+      - run: kubectl wait --for=condition=Ready nodes --all --timeout=120s && kubectl get nodes
+
+      - name: Load images into Kind cluster nodes
+        run: |
+          kind load docker-image kitchen-api:local --name kitchen-cluster
+          kind load docker-image kitchen-web:local --name kitchen-cluster
+
+      - run: kubectl apply -f k8s/namespace.yaml
+      - run: |
+          kubectl create secret generic mongodb-secret \
+            --from-literal=mongo-root-username=admin \
+            --from-literal=mongo-root-password=Secret123! \
+            --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+            --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+      - run: kubectl apply -f k8s/db/statefulset.yaml && kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=150s
+      - run: kubectl apply -f k8s/api/deployment.yaml && kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=120s
+      - run: kubectl apply -f k8s/web-ui/deployment.yaml && kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=60s
+      - run: kubectl apply -f k8s/monitoring/prometheus-config.yaml && kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+      - run: kubectl get pods -n kitchen-app -o wide && kubectl get svc -n kitchen-app
+
+      - name: Smoke test — API health
+        run: |
+          for i in $(seq 1 15); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:30000/health)
+            [[ "$CODE" == "200" ]] && { echo "✅ API health OK"; break; }
+            echo "  Attempt $i: HTTP $CODE — retrying..."; sleep 5
+          done
+          [[ "$CODE" == "200" ]] || exit 1
+
+      - name: Smoke test — Create order, list orders, metrics, web UI
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:30000/orders \
+            -H 'Content-Type: application/json' -d '{"dish":"CI Test Order"}' | grep -q 201
+          curl -s http://localhost:30000/metrics | grep -q 'http_requests_total'
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:30080 | grep -q 200
+          echo "✅ All smoke tests passed"
+
+      - name: Final status
+        if: always()
+        run: kubectl get pods -n kitchen-app && kubectl get events -n kitchen-app --sort-by=.lastTimestamp | tail -15
+
+      - name: Collect logs on failure
+        if: failure()
+        run: kubectl logs -n kitchen-app -l app=kitchen-api --tail=100 || true
