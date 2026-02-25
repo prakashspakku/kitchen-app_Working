@@ -149,7 +149,10 @@ jobs:
 
       - name: Final status
         if: always()
-        run: kubectl get pods -n kitchen-app && kubectl get events -n kitchen-app --sort-by=.lastTimestamp | tail -15
+        run: |
+          kubectl get pods -n kitchen-app || true
+          kubectl get svc -n kitchen-app || true
+          kubectl get events -n kitchen-app --sort-by=.lastTimestamp | tail -15 || true
 
       - name: Collect logs on failure
         if: failure()
