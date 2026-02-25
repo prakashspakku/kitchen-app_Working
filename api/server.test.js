@@ -24,6 +24,10 @@ jest.mock('mongodb', () => {
 
 const app = require('./server');
 
+beforeAll(async () => {
+  await app.connectDb();
+});
+
 test('GET /health returns status and db', async () => {
   const res = await request(app).get('/health');
   expect(res.status).toBe(200);
