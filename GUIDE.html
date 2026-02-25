@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍽 Professional Kitchen — Cloud Native Guide</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg:        #0b1120;
+    --surface:   #111827;
+    --surface2:  #1a2332;
+    --border:    #1e2d40;
+    --border2:   #263347;
+    --text:      #cdd9e5;
+    --text-muted:#6b7c93;
+    --blue:      #58a6ff;
+    --teal:      #39d0d8;
+    --green:     #3fb950;
+    --yellow:    #e3b341;
+    --orange:    #f78166;
+    --purple:    #bc8cff;
+    --pink:      #f778ba;
+    --code-bg:   #0d1117;
+    --radius:    10px;
+    --radius-sm: 6px;
+    --nav-w:     270px;
+    --shadow:    0 4px 24px rgba(0,0,0,.45);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+  }
+
+  /* ── Sidebar Nav ────────────────────────────────────────────── */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--nav-w);
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  #sidebar-header {
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #0d2137 0%, #0f1c2e 100%);
+    flex-shrink: 0;
+  }
+  #sidebar-header .logo { font-size: 1.3rem; font-weight: 700; color: var(--blue); letter-spacing: -.3px; }
+  #sidebar-header .sub  { font-size: .72rem; color: var(--text-muted); margin-top: 3px; }
+
+  #sidebar nav { padding: 12px 0 24px; flex: 1; }
+
+  .nav-phase {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 18px;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    cursor: pointer;
+    user-select: none;
+    transition: color .15s;
+  }
+  .nav-phase:hover { color: var(--blue); }
+  .nav-phase .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    font-size: .65rem;
+    font-weight: 800;
+    background: var(--border2);
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .nav-phase.active .badge { background: var(--blue); color: #fff; }
+  .nav-phase.active { color: var(--blue); }
+
+  .nav-sub {
+    list-style: none;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .3s ease;
+  }
+  .nav-sub.open { max-height: 600px; }
+  .nav-sub a {
+    display: block;
+    padding: 4px 18px 4px 47px;
+    font-size: .78rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color .15s, background .15s;
+    border-radius: 0;
+  }
+  .nav-sub a:hover { color: var(--text); background: var(--border); }
+  .nav-sub a.active { color: var(--blue); }
+
+  /* ── Main Content ───────────────────────────────────────────── */
+  #main {
+    margin-left: var(--nav-w);
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────── */
+  #hero {
+    background: linear-gradient(135deg, #0d2137 0%, #0a1628 40%, #071020 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 60px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  #hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(88,166,255,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #hero h1 { font-size: 2.1rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 10px; }
+  #hero h1 span { color: var(--blue); }
+  #hero .subtitle { font-size: 1rem; color: var(--text-muted); margin-bottom: 28px; max-width: 640px; }
+
+  .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: .75rem; font-weight: 600;
+    border: 1px solid;
+  }
+  .pill-blue   { background: rgba(88,166,255,.1);  border-color: rgba(88,166,255,.3);  color: var(--blue); }
+  .pill-green  { background: rgba(63,185,80,.1);   border-color: rgba(63,185,80,.3);   color: var(--green); }
+  .pill-purple { background: rgba(188,140,255,.1); border-color: rgba(188,140,255,.3); color: var(--purple); }
+  .pill-teal   { background: rgba(57,208,216,.1);  border-color: rgba(57,208,216,.3);  color: var(--teal); }
+  .pill-yellow { background: rgba(227,179,65,.1);  border-color: rgba(227,179,65,.3);  color: var(--yellow); }
+
+  /* Phase overview cards */
+  .phase-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .phase-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-decoration: none;
+    transition: background .2s, border-color .2s, transform .15s;
+  }
+  .phase-card:hover { background: rgba(88,166,255,.08); border-color: rgba(88,166,255,.3); transform: translateY(-2px); }
+  .phase-card .num  { font-size: .68rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .phase-card .name { font-size: .85rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .phase-card .desc { font-size: .72rem; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── Content Sections ───────────────────────────────────────── */
+  .phase-section {
+    padding: 52px 60px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-icon {
+    width: 52px; height: 52px;
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .phase-header h2 { font-size: 1.6rem; font-weight: 700; color: #fff; line-height: 1.2; }
+  .phase-header .phase-sub { font-size: .85rem; color: var(--text-muted); margin-top: 4px; }
+
+  .phase-bg-0 { background: linear-gradient(135deg,rgba(88,166,255,.15),rgba(88,166,255,.05)); }
+  .phase-bg-1 { background: linear-gradient(135deg,rgba(248,129,102,.15),rgba(248,129,102,.05)); }
+  .phase-bg-2 { background: linear-gradient(135deg,rgba(57,208,216,.15),rgba(57,208,216,.05)); }
+  .phase-bg-3 { background: linear-gradient(135deg,rgba(63,185,80,.15),rgba(63,185,80,.05)); }
+  .phase-bg-4 { background: linear-gradient(135deg,rgba(188,140,255,.15),rgba(188,140,255,.05)); }
+  .phase-bg-5 { background: linear-gradient(135deg,rgba(227,179,65,.15),rgba(227,179,65,.05)); }
+  .phase-bg-6 { background: linear-gradient(135deg,rgba(247,120,186,.15),rgba(247,120,186,.05)); }
+
+  /* ── Sub-sections ───────────────────────────────────────────── */
+  .subsection { margin: 32px 0 0; }
+  .subsection h3 {
+    font-size: 1.05rem; font-weight: 700; color: #e2e8f0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .subsection h4 { font-size: .9rem; font-weight: 700; color: var(--text); margin: 20px 0 10px; }
+  p { margin-bottom: 12px; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Analogy boxes ──────────────────────────────────────────── */
+  .analogy-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+  .analogy-box {
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: .83rem;
+    line-height: 1.5;
+  }
+  .analogy-kitchen {
+    background: rgba(57,208,216,.07);
+    border: 1px solid rgba(57,208,216,.2);
+    border-left: 3px solid var(--teal);
+  }
+  .analogy-tech {
+    background: rgba(88,166,255,.07);
+    border: 1px solid rgba(88,166,255,.2);
+    border-left: 3px solid var(--blue);
+  }
+  .analogy-box .label { font-weight: 700; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .analogy-kitchen .label { color: var(--teal); }
+  .analogy-tech    .label { color: var(--blue); }
+
+  /* ── Callout boxes ──────────────────────────────────────────── */
+  .callout {
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: .84rem;
+    line-height: 1.6;
+    margin: 16px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .callout .icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+  .callout-success { background: rgba(63,185,80,.08);  border: 1px solid rgba(63,185,80,.25);  color: #b7f5c2; }
+  .callout-warn    { background: rgba(227,179,65,.08); border: 1px solid rgba(227,179,65,.25); color: #f5e19b; }
+  .callout-info    { background: rgba(88,166,255,.08); border: 1px solid rgba(88,166,255,.25); color: #b0d4ff; }
+  .callout-danger  { background: rgba(248,113,113,.08);border: 1px solid rgba(248,113,113,.25);color: #ffc5c5; }
+  .callout-new     { background: rgba(188,140,255,.08);border: 1px solid rgba(188,140,255,.3); color: #dfc5ff; }
+
+  /* ── Steps ──────────────────────────────────────────────────── */
+  .step {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-title { font-weight: 700; font-size: .92rem; color: #fff; margin-bottom: 8px; }
+
+  /* ── OS Tabs ────────────────────────────────────────────────── */
+  .os-tabs { margin: 16px 0; }
+  .os-tab-buttons {
+    display: flex;
+    gap: 4px;
+    margin-bottom: -1px;
+  }
+  .os-tab-btn {
+    padding: 6px 14px;
+    font-size: .78rem;
+    font-weight: 600;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .os-tab-btn:hover { background: var(--border); color: var(--text); }
+  .os-tab-btn.active { background: var(--code-bg); color: var(--text); border-color: var(--border2); }
+  .os-tab-panels { border: 1px solid var(--border2); border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm); background: var(--code-bg); }
+  .os-tab-panel { display: none; padding: 16px 18px; }
+  .os-tab-panel.active { display: block; }
+
+  /* ── Code Blocks ────────────────────────────────────────────── */
+  .code-wrap {
+    position: relative;
+    margin: 12px 0;
+    border-radius: var(--radius-sm);
+    background: var(--code-bg);
+    border: 1px solid var(--border2);
+    overflow: hidden;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--border2);
+    font-size: .72rem;
+    color: var(--text-muted);
+  }
+  .code-header .lang { font-weight: 600; }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: .7rem;
+    padding: 2px 8px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    font-family: inherit;
+  }
+  .copy-btn:hover { background: var(--border2); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: rgba(63,185,80,.4); }
+  pre {
+    margin: 0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    font-size: .82rem;
+    line-height: 1.65;
+    color: #c9d1d9;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+  code { font-family: inherit; font-size: inherit; }
+  p code, li code, td code, th code {
+    background: rgba(110,118,129,.15);
+    border: 1px solid rgba(110,118,129,.3);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: .82em;
+    color: var(--teal);
+  }
+
+  /* Syntax colours */
+  .kw  { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .cmt { color: #8b949e; font-style: italic; }
+  .num { color: #79c0ff; }
+  .fn  { color: #d2a8ff; }
+  .var { color: #ffa657; }
+
+  /* ── Tables ─────────────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--border2); }
+  table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+  th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 9px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td:first-child { font-weight: 600; color: var(--teal); white-space: nowrap; }
+
+  /* ── Checklist ──────────────────────────────────────────────── */
+  .checklist {
+    list-style: none;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin: 16px 0;
+    display: grid;
+    gap: 6px;
+  }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: .84rem;
+    line-height: 1.5;
+    padding: 2px 0;
+  }
+  .checklist li::before {
+    content: '☐';
+    color: var(--border2);
+    font-size: 1rem;
+    margin-top: -1px;
+    flex-shrink: 0;
+  }
+
+  /* ── Path chooser (Path A / Path B) ────────────────────────── */
+  .path-tabs { margin: 20px 0; }
+  .path-tab-buttons { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .path-tab-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: .82rem;
+    font-weight: 600;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .path-tab-btn.path-a { border-color: rgba(63,185,80,.3); }
+  .path-tab-btn.path-b { border-color: rgba(88,166,255,.3); }
+  .path-tab-btn.active.path-a { background: rgba(63,185,80,.15); color: var(--green); border-color: rgba(63,185,80,.6); }
+  .path-tab-btn.active.path-b { background: rgba(88,166,255,.15); color: var(--blue);  border-color: rgba(88,166,255,.6); }
+  .path-panel { display: none; }
+  .path-panel.active { display: block; }
+  .path-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: .72rem; font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .path-badge-a { background: rgba(63,185,80,.12); border: 1px solid rgba(63,185,80,.3); color: var(--green); }
+  .path-badge-b { background: rgba(88,166,255,.12); border: 1px solid rgba(88,166,255,.3); color: var(--blue); }
+
+  /* ── Access URL cards ───────────────────────────────────────── */
+  .url-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+  .url-card {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .url-card .svc  { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .url-card .url  { font-size: .82rem; color: var(--blue); font-family: monospace; word-break: break-all; }
+  .url-card .cred { font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── Architecture diagram ───────────────────────────────────── */
+  .arch-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: .78rem;
+    line-height: 1.7;
+    color: #8b949e;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .arch-diagram .hl  { color: var(--teal); }
+  .arch-diagram .hl2 { color: var(--blue); }
+  .arch-diagram .hl3 { color: var(--green); }
+  .arch-diagram .hl4 { color: var(--yellow); }
+
+  /* ── Comparison table special ───────────────────────────────── */
+  .compare-old td:nth-child(2) { color: var(--orange); }
+  .compare-old td:nth-child(3) { color: var(--green);  }
+  .compare-old td:nth-child(2) code { color: var(--orange); }
+  .compare-old td:nth-child(3) code { color: var(--green);  }
+
+  /* ── Troubleshoot ───────────────────────────────────────────── */
+  .trouble-group { margin: 20px 0; }
+  .trouble-group h4 {
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .trouble-row {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .trouble-err {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .trouble-err:hover { background: rgba(255,255,255,.02); }
+  .trouble-err .err-icon { color: var(--orange); flex-shrink: 0; margin-top: 1px; }
+  .trouble-err .err-text { font-size: .83rem; font-weight: 600; color: var(--text); flex: 1; }
+  .trouble-err .chevron { color: var(--text-muted); font-size: .7rem; transition: transform .2s; }
+  .trouble-body {
+    display: none;
+    padding: 0 14px 14px 34px;
+    font-size: .82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .trouble-body .cause { margin-bottom: 6px; }
+  .trouble-body .fix { color: var(--text); }
+  .trouble-row.open .trouble-body { display: block; }
+  .trouble-row.open .chevron { transform: rotate(90deg); }
+
+  /* ── PromQL ref ─────────────────────────────────────────────── */
+  .promql-grid { display: grid; gap: 8px; margin: 12px 0; }
+  .promql-row {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 12px;
+    align-items: center;
+    font-size: .82rem;
+  }
+  .promql-q { color: var(--text-muted); }
+  .promql-v { font-family: 'SF Mono', Consolas, monospace; color: var(--teal); font-size: .78rem; }
+
+  /* ── Cheatsheet ─────────────────────────────────────────────── */
+  .cheatsheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin: 16px 0; }
+  .cheatsheet-group { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .cheatsheet-group h5 { font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 10px; }
+  .cheatsheet-group .cmd {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: .75rem;
+    color: var(--teal);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 7px;
+    display: block;
+    margin: 4px 0;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  /* ── Pipeline diagram ───────────────────────────────────────── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 20px 0;
+  }
+  .pipeline-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+  .pipeline-node {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    min-width: 160px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pipeline-node .pn-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 4px; }
+  .pipeline-node .pn-val   { font-size: .85rem; font-weight: 600; color: var(--text); }
+  .pipeline-parallel { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+  .pipeline-parallel .pipeline-node { flex: 1; min-width: 140px; }
+  .pipeline-arrow { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1.2rem; padding: 4px 8px; }
+  .pn-green  { border-color: rgba(63,185,80,.4);  }
+  .pn-blue   { border-color: rgba(88,166,255,.4); }
+  .pn-yellow { border-color: rgba(227,179,65,.4); }
+  .pn-purple { border-color: rgba(188,140,255,.4);}
+
+  /* ── File tree ──────────────────────────────────────────────── */
+  .filetree {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: .8rem;
+    line-height: 2;
+    background: var(--code-bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    color: #8b949e;
+    overflow-x: auto;
+  }
+  .filetree .dir  { color: var(--blue); }
+  .filetree .file { color: #c9d1d9; }
+  .filetree .note { color: #484f58; }
+
+  /* ── Mobile ─────────────────────────────────────────────────── */
+  #menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text);
+  }
+
+  @media (max-width: 860px) {
+    #menu-toggle { display: flex; }
+    #sidebar { transform: translateX(-100%); transition: transform .3s; }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    #hero, .phase-section { padding-left: 24px; padding-right: 24px; }
+    .phase-overview, .analogy-row { grid-template-columns: 1fr; }
+    .pipeline-parallel { flex-direction: column; }
+    .promql-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mobile toggle -->
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<!-- ═══════════════════════════ SIDEBAR ══════════════════════════ -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <div class="logo">🍽 Kitchen App</div>
+    <div class="sub">Cloud Native Guide · 7 Phases</div>
+  </div>
+  <nav>
+    <div class="nav-phase" onclick="toggleNav(this,0)"><span class="badge">0</span>Install Tools</div>
+    <ul class="nav-sub" id="nav-0">
+      <li><a href="#s0-git">0.1 Git</a></li>
+      <li><a href="#s0-node">0.2 Node.js &amp; NVM</a></li>
+      <li><a href="#s0-docker">0.3 Docker Desktop</a></li>
+      <li><a href="#s0-kubectl">0.4 kubectl</a></li>
+      <li><a href="#s0-minikube">0.5 Minikube (Optional)</a></li>
+      <li><a href="#s0-vscode">0.6 VS Code</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,1)"><span class="badge">1</span>GitHub Setup</div>
+    <ul class="nav-sub" id="nav-1">
+      <li><a href="#s1-account">1.1 Create Account</a></li>
+      <li><a href="#s1-repo">1.2 Create Repository</a></li>
+      <li><a href="#s1-clone">1.3 Clone &amp; Setup</a></li>
+      <li><a href="#s1-structure">1.4 Folder Structure</a></li>
+      <li><a href="#s1-workflow">1.5 Daily Workflow</a></li>
+      <li><a href="#s1-branches">1.6 Branches</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,2)"><span class="badge">2</span>Docker</div>
+    <ul class="nav-sub" id="nav-2">
+      <li><a href="#s2-concepts">2.1 Key Concepts</a></li>
+      <li><a href="#s2-files">2.2 Application Files</a></li>
+      <li><a href="#s2-run">2.3 Build &amp; Run Stack</a></li>
+      <li><a href="#s2-hub">2.4 Docker Hub (Optional)</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,3)"><span class="badge">3</span>Kubernetes Concepts</div>
+    <ul class="nav-sub" id="nav-3">
+      <li><a href="#s3-objects">3.1 K8s Objects</a></li>
+      <li><a href="#s3-reconcile">3.2 Reconciliation</a></li>
+      <li><a href="#s3-cluster">3.3 Start Cluster</a></li>
+      <li><a href="#s3-secrets">3.4 Namespace &amp; Secrets</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,4)"><span class="badge">4</span>Deploy to K8s</div>
+    <ul class="nav-sub" id="nav-4">
+      <li><a href="#s4-mongo">4.1 MongoDB StatefulSet</a></li>
+      <li><a href="#s4-api">4.2 API Deployment</a></li>
+      <li><a href="#s4-webui">4.3 Web UI Deployment</a></li>
+      <li><a href="#s4-apply">4.4 Deploy Everything</a></li>
+      <li><a href="#s4-cmds">4.5 kubectl Commands</a></li>
+      <li><a href="#s4-probes">4.6 Probes</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,5)"><span class="badge">5</span>CI/CD</div>
+    <ul class="nav-sub" id="nav-5">
+      <li><a href="#s5-how">5.1 How It Works</a></li>
+      <li><a href="#s5-strategy">5.2 Deployment Strategy</a></li>
+      <li><a href="#s5-secrets">5.3 GitHub Secrets</a></li>
+      <li><a href="#s5-workflow">5.4 Workflow File</a></li>
+      <li><a href="#s5-trigger">5.5 Trigger Pipeline</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,6)"><span class="badge">6</span>Monitoring</div>
+    <ul class="nav-sub" id="nav-6">
+      <li><a href="#s6-how">6.1 Metrics Pipeline</a></li>
+      <li><a href="#s6-prometheus">6.2 Prometheus Manifest</a></li>
+      <li><a href="#s6-grafana">6.3 Grafana Manifest</a></li>
+      <li><a href="#s6-use">6.4 Deploy &amp; Use</a></li>
+    </ul>
+
+    <div class="nav-phase" onclick="toggleNav(this,7)"><span class="badge">!</span>Troubleshooting</div>
+    <ul class="nav-sub" id="nav-7">
+      <li><a href="#ts-docker">Docker Issues</a></li>
+      <li><a href="#ts-k8s">Kubernetes Issues</a></li>
+      <li><a href="#ts-dd">Docker Desktop K8s</a></li>
+      <li><a href="#ts-gha">GitHub Actions</a></li>
+      <li><a href="#ts-prom">Prometheus &amp; Grafana</a></li>
+      <li><a href="#ts-cheat">Cheatsheet</a></li>
+      <li><a href="#ts-promql">PromQL Reference</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+<main id="main">
+
+<!-- ── HERO ─────────────────────────────────────────────────── -->
+<section id="hero">
+  <h1>🍽 Professional Kitchen<br><span>Cloud Native Application</span></h1>
+  <p class="subtitle">Complete End-to-End Deployment &amp; Configuration Guide — for students with zero prior knowledge of DevOps tools.</p>
+
+  <div class="hero-pills">
+    <span class="pill pill-blue">🐙 Git &amp; GitHub</span>
+    <span class="pill pill-teal">🐳 Docker</span>
+    <span class="pill pill-green">☸️ Kubernetes</span>
+    <span class="pill pill-yellow">🍃 MongoDB</span>
+    <span class="pill pill-purple">📊 Prometheus &amp; Grafana</span>
+    <span class="pill pill-blue">7 Phases · Zero to Production</span>
+  </div>
+
+  <div class="callout callout-new" style="max-width:640px;margin-bottom:28px">
+    <span class="icon">✨</span>
+    <div><strong>New in this guide:</strong> Phase 3, 4 &amp; 5 include a <strong>Local-First path</strong> using Docker Desktop's built-in Kubernetes (no Minikube needed) and a <strong>GitHub Actions CI/CD path</strong> that deploys to a real 3-node Kubernetes cluster running entirely inside GitHub's own infrastructure — no remote server, no cloud bill, no KUBECONFIG secret required.</div>
+  </div>
+
+  <div class="phase-overview">
+    <a class="phase-card" href="#phase-0"><div class="num">Phase 0</div><div class="name">🛠 Install Tools</div><div class="desc">Git, NVM, Docker Desktop, kubectl, VS Code</div></a>
+    <a class="phase-card" href="#phase-1"><div class="num">Phase 1</div><div class="name">🐙 GitHub Setup</div><div class="desc">Account, repo, daily workflow, branches</div></a>
+    <a class="phase-card" href="#phase-2"><div class="num">Phase 2</div><div class="name">🐳 Docker</div><div class="desc">Dockerfiles, Compose, 3-container local stack</div></a>
+    <a class="phase-card" href="#phase-3"><div class="num">Phase 3</div><div class="name">☸️ K8s Concepts</div><div class="desc">Pods, Services, Secrets, StatefulSets</div></a>
+    <a class="phase-card" href="#phase-4"><div class="num">Phase 4</div><div class="name">🚀 Deploy to K8s</div><div class="desc">YAML manifests, kubectl apply, probes</div></a>
+    <a class="phase-card" href="#phase-5"><div class="num">Phase 5</div><div class="name">⚙️ CI/CD</div><div class="desc">GitHub Actions + 3-node Kind cluster</div></a>
+    <a class="phase-card" href="#phase-6"><div class="num">Phase 6</div><div class="name">📊 Monitoring</div><div class="desc">Prometheus, Grafana, dashboards, alerts</div></a>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 0 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-0">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-0">🛠️</div>
+    <div>
+      <h2>Phase 0: Install All Tools</h2>
+      <div class="phase-sub">Install Git, Node.js, Docker, kubectl, and VS Code before writing any code</div>
+    </div>
+  </div>
+
+  <!-- 0.1 Git -->
+  <div class="subsection" id="s0-git">
+    <h3>0.1 Git — Version Control</h3>
+    <div class="analogy-row">
+      <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Git is the recipe book's undo history. Every change a chef makes is recorded. If today's experiment ruins a sauce, you restore yesterday's version instantly.</div>
+      <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Git tracks every change to your code files. Each save-point is a <em>commit</em>. Multiple developers can work simultaneously without overwriting each other.</div>
+    </div>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Install Git on your operating system</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'git','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'git','mac')">🍎 macOS</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'git','linux')">🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="git-win">
+            <ol style="padding-left:18px;font-size:.84rem;line-height:1.8">
+              <li>Visit: <a href="https://git-scm.com/download/win">git-scm.com/download/win</a></li>
+              <li>Click <strong>Git for Windows</strong> → Run the .exe as Administrator</li>
+              <li>Click Next on every screen, leave all defaults unchanged</li>
+              <li>Click <strong>Install</strong>, then <strong>Finish</strong></li>
+            </ol>
+          </div>
+          <div class="os-tab-panel" id="git-mac">
+            <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>brew install git
+# If Homebrew not installed:
+/bin/bash -c "$(curl -fsSL https://brew.sh/install.sh)"
+brew install git</pre></div>
+          </div>
+          <div class="os-tab-panel" id="git-linux">
+            <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>sudo apt update && sudo apt install git -y   # Ubuntu/Debian/WSL
+sudo dnf install git -y                      # Fedora/Red Hat</pre></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Verify and configure Git</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>git --version
+<span class="cmt"># Expected: git version 2.43.0 (or higher)</span>
+
+git config --global user.name "Your Full Name"
+git config --global user.email "you@example.com"
+git config --global core.editor "code --wait"   <span class="cmt"># optional: VS Code as editor</span>
+
+git config --global --list
+<span class="cmt"># Expected: user.name=Your Full Name / user.email=you@example.com</span></pre></div>
+      <div class="callout callout-success"><span class="icon">✅</span><div><strong>Expected Result:</strong> <code>git --version</code> prints <code>git version 2.x.x</code> and <code>--list</code> shows your name and email.</div></div>
+    </div></div>
+  </div>
+
+  <!-- 0.2 Node.js -->
+  <div class="subsection" id="s0-node">
+    <h3>0.2 Node.js &amp; NVM — JavaScript Runtime</h3>
+    <div class="analogy-row">
+      <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Node.js is the gas stove. NVM lets us have multiple stove sizes — a 4-burner (Node 18) and 6-burner (Node 20) because our CI/CD tests on both.</div>
+      <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Node.js executes JavaScript outside the browser. NVM manages multiple Node versions — critical because the CI/CD pipeline runs tests on Node 18 AND Node 20 in parallel.</div>
+    </div>
+
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Install NVM, then Node 18 and Node 20</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'nvm','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'nvm','mac')">🍎 macOS / 🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="nvm-win">
+            <ol style="padding-left:18px;font-size:.84rem;line-height:1.8">
+              <li>Download nvm-windows: <a href="https://github.com/coreybutler/nvm-windows">github.com/coreybutler/nvm-windows</a> → Releases → <code>nvm-setup.exe</code></li>
+              <li>Run as Administrator → Open NEW PowerShell as Admin:</li>
+            </ol>
+            <div class="code-wrap"><div class="code-header"><span class="lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>nvm install 18
+nvm install 20
+nvm use 20</pre></div>
+          </div>
+          <div class="os-tab-panel" id="nvm-mac">
+            <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+<span class="cmt"># Close + reopen Terminal, then:</span>
+nvm install 18
+nvm install 20
+nvm use 20</pre></div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Verify Node.js</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>node --version   <span class="cmt"># Expected: v20.x.x</span>
+npm --version    <span class="cmt"># Expected: 10.x.x</span>
+nvm list         <span class="cmt"># Expected: -> v20.x.x (active) / v18.x.x</span></pre></div>
+    </div></div>
+  </div>
+
+  <!-- 0.3 Docker -->
+  <div class="subsection" id="s0-docker">
+    <h3>0.3 Docker Desktop — Container Engine</h3>
+    <div class="analogy-row">
+      <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Docker is the takeout packaging machine. It seals your recipe (code) with all its ingredients into a standardised, tamper-proof container that works identically anywhere.</div>
+      <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Docker packages your app + runtime + libraries into a portable image, eliminating "works on my machine" problems. Docker Desktop provides the Engine plus a GUI.</div>
+    </div>
+
+    <div class="step"><div class="step-num">5</div><div class="step-body">
+      <div class="step-title">Install Docker Desktop</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'docker','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'docker','mac')">🍎 macOS</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'docker','linux')">🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="docker-win"><ol style="padding-left:18px;font-size:.84rem;line-height:1.8"><li>Visit <a href="https://docker.com/products/docker-desktop">docker.com/products/docker-desktop</a></li><li>Click Download for Windows → Run installer</li><li>Enable WSL 2 integration when prompted</li><li>Start Docker Desktop → wait for whale icon in taskbar</li></ol></div>
+          <div class="os-tab-panel" id="docker-mac"><ol style="padding-left:18px;font-size:.84rem;line-height:1.8"><li>Visit <a href="https://docker.com/products/docker-desktop">docker.com/products/docker-desktop</a></li><li>Download for Mac → choose Apple Silicon or Intel</li><li>Open .dmg → drag Docker to Applications → Accept licence</li><li>Wait for whale icon in menu bar</li></ol></div>
+          <div class="os-tab-panel" id="docker-linux"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>sudo apt update && sudo apt install docker.io -y
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+newgrp docker</pre></div></div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="step"><div class="step-num">6</div><div class="step-body">
+      <div class="step-title">Verify Docker</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>docker --version        <span class="cmt"># Expected: Docker version 25.x.x</span>
+docker compose version  <span class="cmt"># Expected: Docker Compose version v2.x.x</span>
+docker run hello-world  <span class="cmt"># Expected: "Hello from Docker!"</span></pre></div>
+      <div class="callout callout-warn"><span class="icon">⚠️</span><div>If <code>Cannot connect to Docker daemon</code> appears — Docker Desktop is not running. Open the app and wait for the whale icon to stop animating.</div></div>
+    </div></div>
+
+    <div class="callout callout-new" style="margin:20px 0">
+      <span class="icon">🆕</span>
+      <div>
+        <strong>Enable Kubernetes in Docker Desktop</strong> — replaces Minikube for local use.<br>
+        <code>Docker Desktop → Settings (⚙️) → Kubernetes → ✅ Enable Kubernetes → Apply &amp; Restart</code><br>
+        Wait ~2 minutes. Then verify:
+        <div class="code-wrap" style="margin-top:10px"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl config use-context docker-desktop
+kubectl get nodes
+<span class="cmt"># Expected: docker-desktop   Ready   control-plane   2m   v1.28.x</span></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 0.4 kubectl -->
+  <div class="subsection" id="s0-kubectl">
+    <h3>0.4 kubectl — Kubernetes CLI</h3>
+    <div class="step"><div class="step-num">7</div><div class="step-body">
+      <div class="step-title">Install kubectl</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'kctl','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'kctl','mac')">🍎 macOS</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'kctl','linux')">🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="kctl-win"><div class="code-wrap"><div class="code-header"><span class="lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>winget install Kubernetes.kubectl</pre></div></div>
+          <div class="os-tab-panel" id="kctl-mac"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>brew install kubectl</pre></div></div>
+          <div class="os-tab-panel" id="kctl-linux"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl && sudo mv kubectl /usr/local/bin/</pre></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="step"><div class="step-num">8</div><div class="step-body">
+      <div class="step-title">Verify kubectl</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl version --client
+<span class="cmt"># Expected: Client Version: v1.28.x / Kustomize Version: v5.x.x</span></pre></div>
+      <div class="callout callout-info"><span class="icon">💡</span><div>If you enabled Kubernetes in Docker Desktop, kubectl is already configured automatically. Run <code>kubectl config current-context</code> — it should print <code>docker-desktop</code>.</div></div>
+    </div></div>
+  </div>
+
+  <!-- 0.5 Minikube -->
+  <div class="subsection" id="s0-minikube">
+    <h3>0.5 Minikube — Optional (Original Guide Path)</h3>
+    <div class="callout callout-info"><span class="icon">ℹ️</span><div>This guide now recommends Docker Desktop's built-in Kubernetes. Install Minikube only if you cannot enable Kubernetes in Docker Desktop.</div></div>
+    <div class="step"><div class="step-num">9</div><div class="step-body">
+      <div class="step-title">Install Minikube (optional)</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'mink','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'mink','mac')">🍎 macOS</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'mink','linux')">🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="mink-win"><div class="code-wrap"><div class="code-header"><span class="lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>winget install Kubernetes.minikube</pre></div></div>
+          <div class="os-tab-panel" id="mink-mac"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>brew install minikube</pre></div></div>
+          <div class="os-tab-panel" id="mink-linux"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+chmod +x minikube-linux-amd64 && sudo install minikube-linux-amd64 /usr/local/bin/minikube</pre></div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 0.6 VS Code -->
+  <div class="subsection" id="s0-vscode">
+    <h3>0.6 VS Code — Code Editor</h3>
+    <p>Download from <a href="https://code.visualstudio.com">code.visualstudio.com</a>. After installing, press <code>Ctrl+Shift+X</code> (Win/Linux) or <code>Cmd+Shift+X</code> (Mac) and install:</p>
+    <div class="table-wrap"><table><thead><tr><th>Extension</th><th>Publisher</th><th>Why You Need It</th></tr></thead><tbody>
+      <tr><td>Docker</td><td>Microsoft</td><td>Syntax highlighting for Dockerfiles, right-click container commands</td></tr>
+      <tr><td>Kubernetes</td><td>Microsoft</td><td>kubectl commands, YAML editing, cluster explorer in sidebar</td></tr>
+      <tr><td>YAML</td><td>Red Hat</td><td>Validates YAML structure — essential for K8s manifests</td></tr>
+      <tr><td>GitLens</td><td>GitKraken</td><td>Shows who changed each line and when — inline in the editor</td></tr>
+      <tr><td>ESLint</td><td>Microsoft</td><td>Shows JavaScript linting errors as you type (red underlines)</td></tr>
+      <tr><td>REST Client</td><td>Huachao Mao</td><td>Test API endpoints directly from VS Code — no Postman needed</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <!-- Phase 0 Checklist -->
+  <div class="subsection"><h3>✅ Phase 0 Complete — All Tools Ready</h3>
+    <ul class="checklist">
+      <li><code>git --version</code> → <code>git version 2.x.x</code></li>
+      <li><code>node --version</code> → <code>v20.x.x</code> · <code>nvm list</code> shows both v18 and v20</li>
+      <li><code>docker --version</code> → <code>Docker version 25.x.x</code></li>
+      <li><code>docker run hello-world</code> prints: <code>Hello from Docker!</code></li>
+      <li><code>kubectl version --client</code> → <code>Client Version: v1.28.x</code></li>
+      <li><strong>Docker Desktop Kubernetes enabled</strong> → <code>kubectl get nodes</code> shows <code>docker-desktop Ready</code></li>
+      <li>VS Code opens with 6 extensions installed</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 1 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-1">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-1">🐙</div>
+    <div><h2>Phase 1: GitHub Setup</h2><div class="phase-sub">Create your account, repository, and learn the Git daily workflow</div></div>
+  </div>
+  <div class="analogy-row">
+    <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>GitHub is the shared recipe library for the entire restaurant chain. Every chef can read the latest recipes, suggest improvements on their own prep station (branch), and the Head Chef reviews and approves (Pull Request).</div>
+    <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>GitHub hosts Git repositories in the cloud and adds: Pull Requests (code review), Issues (bug tracking), Actions (automation), Environments (deployment gates), and Secrets (encrypted config).</div>
+  </div>
+
+  <div class="subsection" id="s1-account"><h3>1.1 Create Your GitHub Account</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Sign up at github.com</div>
+      <ol style="padding-left:18px;font-size:.84rem;line-height:1.9">
+        <li>Open <a href="https://github.com">github.com</a> → click the green <strong>Sign up</strong> button</li>
+        <li>Enter your email address → click Continue</li>
+        <li>Create a password (minimum 15 characters) → Continue</li>
+        <li>Choose a username: lowercase, numbers, hyphens only. Example: <code>ravi-kumar-dev</code></li>
+        <li>Solve the verification puzzle → verify email</li>
+        <li>When asked team size: select <strong>Just me</strong> → <strong>Free plan</strong></li>
+      </ol>
+      <div class="callout callout-info" style="margin-top:12px"><span class="icon">💡</span><div>Your GitHub username becomes part of every URL you share. Choose something professional you're comfortable with employers seeing.</div></div>
+    </div></div>
+  </div>
+
+  <div class="subsection" id="s1-repo"><h3>1.2 Create the Kitchen App Repository</h3>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Create a new repository on GitHub</div>
+      <p>On GitHub.com, click the <strong>+</strong> icon (top right) → <strong>New repository</strong></p>
+      <div class="table-wrap"><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Repository name</td><td><code>kitchen-app</code></td></tr>
+        <tr><td>Description</td><td><code>3-Tier Cloud Native Microservice — Professional Kitchen Demo</code></td></tr>
+        <tr><td>Visibility</td><td><strong>Public</strong> (required for free GitHub Actions minutes)</td></tr>
+        <tr><td>Add a README file</td><td>✅ tick</td></tr>
+        <tr><td>Add .gitignore</td><td>dropdown → type <code>Node</code> → select <strong>Node</strong></td></tr>
+        <tr><td>License</td><td><strong>MIT License</strong></td></tr>
+      </tbody></table></div>
+      <div class="callout callout-success"><span class="icon">✅</span><div>You are redirected to <code>github.com/YOUR-USERNAME/kitchen-app</code>. The repo already contains <code>README.md</code> and <code>.gitignore</code>.</div></div>
+    </div></div>
+  </div>
+
+  <div class="subsection" id="s1-clone"><h3>1.3 Clone the Repository to Your Laptop</h3>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Clone and set up the project</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>cd Desktop
+git clone https://github.com/YOUR-USERNAME/kitchen-app.git
+cd kitchen-app
+code .          <span class="cmt"># Open in VS Code</span>
+
+git remote -v
+<span class="cmt"># Expected: origin  https://github.com/YOUR-USERNAME/kitchen-app.git (fetch)</span></pre></div>
+    </div></div>
+  </div>
+
+  <div class="subsection" id="s1-structure"><h3>1.4 Create Project Folder Structure</h3>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Create all folders and placeholder files</div>
+      <div class="os-tabs">
+        <div class="os-tab-buttons">
+          <button class="os-tab-btn active" onclick="switchOS(this,'struct','win')">🪟 Windows</button>
+          <button class="os-tab-btn" onclick="switchOS(this,'struct','mac')">🍎 macOS / 🐧 Linux</button>
+        </div>
+        <div class="os-tab-panels">
+          <div class="os-tab-panel active" id="struct-win"><div class="code-wrap"><div class="code-header"><span class="lang">powershell</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>mkdir api,web-ui,'db/init','k8s/api','k8s/web-ui','k8s/db','k8s/monitoring','.github/workflows','scripts'
+New-Item api/server.js,api/package.json,api/Dockerfile,api/.eslintrc.json,api/server.test.js -ItemType File
+New-Item web-ui/index.html,web-ui/nginx.conf,web-ui/Dockerfile -ItemType File
+New-Item db/init/init.js,docker-compose.yml -ItemType File
+New-Item k8s/namespace.yaml,k8s/api/deployment.yaml -ItemType File
+New-Item k8s/web-ui/deployment.yaml,k8s/db/statefulset.yaml -ItemType File
+New-Item k8s/monitoring/prometheus-config.yaml,k8s/monitoring/grafana-deployment.yaml -ItemType File
+New-Item .github/workflows/ci-cd.yml,scripts/local-setup.sh,scripts/teardown.sh -ItemType File</pre></div></div>
+          <div class="os-tab-panel" id="struct-mac"><div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>mkdir -p api web-ui db/init k8s/{api,web-ui,db,monitoring} .github/workflows scripts
+touch api/{server.js,package.json,Dockerfile,.eslintrc.json,server.test.js}
+touch web-ui/{index.html,nginx.conf,Dockerfile}
+touch db/init/init.js docker-compose.yml
+touch k8s/namespace.yaml k8s/api/deployment.yaml k8s/web-ui/deployment.yaml k8s/db/statefulset.yaml
+touch k8s/monitoring/{prometheus-config.yaml,grafana-deployment.yaml}
+touch .github/workflows/ci-cd.yml scripts/local-setup.sh scripts/teardown.sh
+chmod +x scripts/local-setup.sh scripts/teardown.sh</pre></div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="subsection" id="s1-workflow"><h3>1.5 The Git Daily Workflow — Four Commands Every Day</h3>
+    <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><span class="cmt"># STEP 1: See what changed</span>
+git status              <span class="cmt"># Red = unstaged  /  Green = staged</span>
+
+<span class="cmt"># STEP 2: Stage changes</span>
+git add .               <span class="cmt"># Stage ALL changed files</span>
+git add api/server.js   <span class="cmt"># Stage ONE specific file</span>
+
+<span class="cmt"># STEP 3: Commit with a meaningful message</span>
+git commit -m "feat: add GET /orders endpoint"
+<span class="cmt"># Types: feat / fix / docs / chore / test / refactor</span>
+
+<span class="cmt"># STEP 4: Push to GitHub (triggers CI/CD pipeline)</span>
+git push origin main</pre></div>
+    <div class="callout callout-danger"><span class="icon">⚠️</span><div>NEVER commit <code>.env</code> files, passwords, or API keys. Always add them to <code>.gitignore</code>. Use GitHub Secrets for sensitive values in CI/CD.</div></div>
+  </div>
+
+  <div class="subsection" id="s1-branches"><h3>1.6 Working with Branches</h3>
+    <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>git checkout -b feature/add-metrics-endpoint
+git add . && git commit -m "feat: add Prometheus /metrics endpoint"
+git push origin feature/add-metrics-endpoint
+<span class="cmt"># On GitHub: yellow banner → 'Compare & pull request' → Create PR
+# GitHub Actions runs tests automatically on the PR</span>
+git checkout main && git pull origin main  <span class="cmt"># after merge</span></pre></div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 1 Complete — GitHub Ready</h3>
+    <ul class="checklist">
+      <li>GitHub account created, email verified, signed in</li>
+      <li><code>kitchen-app</code> repository created (Public, with README and .gitignore)</li>
+      <li><code>git remote -v</code> shows origin → your GitHub repo URL</li>
+      <li>Project folder structure created with all placeholder files</li>
+      <li><code>git add &amp;&amp; git commit &amp;&amp; git push</code> successfully uploads to GitHub</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 2 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-2">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-2">🐳</div>
+    <div><h2>Phase 2: Docker &amp; Local Deployment</h2><div class="phase-sub">Build container images and run the full 3-tier app locally with Docker Compose</div></div>
+  </div>
+  <div class="analogy-row">
+    <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Docker Compose is the full meal deal coordinator — it starts the fridge (MongoDB), hot kitchen (API), and front counter (Web UI) in the correct order.</div>
+    <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Docker Compose defines multi-container applications: startup order, env vars, port mappings, volumes, and health checks. One command starts the entire stack.</div>
+  </div>
+
+  <div class="subsection" id="s2-concepts"><h3>2.1 Key Docker Concepts</h3>
+    <div class="table-wrap"><table><thead><tr><th>Term</th><th>Kitchen Analogy</th><th>Technical Meaning</th></tr></thead><tbody>
+      <tr><td>Image</td><td>Printed &amp; laminated recipe card</td><td>Read-only snapshot of app + runtime + libraries. Never changes.</td></tr>
+      <tr><td>Container</td><td>The dish being cooked right now</td><td>Running instance of an image. Ephemeral — deleted on stop.</td></tr>
+      <tr><td>Dockerfile</td><td>Step-by-step cooking instructions</td><td>Text file of commands to build an image layer by layer</td></tr>
+      <tr><td>Volume</td><td>The walk-in fridge</td><td>Persistent storage that survives container restarts and removals</td></tr>
+      <tr><td>Network</td><td>Kitchen internal intercom</td><td>Private network — containers talk by container name</td></tr>
+      <tr><td>Port Mapping</td><td>The serving hatch</td><td><code>8080:80</code> = <code>localhost:8080</code> → <code>container:80</code></td></tr>
+      <tr><td>Health Check</td><td>Quality control check on every dish</td><td>Command run inside the container to verify it is functioning</td></tr>
+      <tr><td>Multi-Stage Build</td><td>Prep station vs serving station</td><td>Stage 1 installs dev tools and tests. Stage 2 runs only production code.</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="subsection" id="s2-files"><h3>2.2 Create All Application Files</h3>
+    <p>Open each file in VS Code and paste the content shown.</p>
+
+    <h4>api/Dockerfile — Multi-Stage Build</h4>
+    <div class="code-wrap"><div class="code-header"><span class="lang">dockerfile</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><span class="cmt"># Stage 1: Builder — install deps and verify code quality</span>
+<span class="kw">FROM</span> node:20-alpine <span class="kw">AS</span> builder
+<span class="kw">WORKDIR</span> /build
+<span class="kw">COPY</span> package*.json ./
+<span class="kw">RUN</span> npm ci && npm cache clean --force
+<span class="kw">COPY</span> . .
+<span class="kw">RUN</span> npm run lint    <span class="cmt"># Build FAILS if ESLint errors exist</span>
+
+<span class="cmt"># Stage 2: Production — only what's needed to run</span>
+<span class="kw">FROM</span> node:20-alpine <span class="kw">AS</span> production
+<span class="kw">RUN</span> addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001 -G nodejs
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> --from=builder --chown=nodeuser:nodejs /build/node_modules ./node_modules
+<span class="kw">COPY</span> --chown=nodeuser:nodejs server.js package.json ./
+<span class="kw">USER</span> nodeuser
+<span class="kw">EXPOSE</span> 3000
+<span class="kw">HEALTHCHECK</span> --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode&lt;500?0:1)).on('error',()=>process.exit(1))"
+<span class="kw">CMD</span> ["node", "server.js"]</pre></div>
+
+    <h4>docker-compose.yml — The Full Local Stack</h4>
+    <div class="code-wrap"><div class="code-header"><span class="lang">yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>version: '3.9'
+services:
+  db:
+    image: mongo:7.0
+    container_name: kitchen-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Secret123!
+    volumes:
+      - mongo-data:/data/db
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks: [kitchen-net]
+    ports: ['27017:27017']
+    healthcheck:
+      test: ['CMD','mongosh','--quiet','--eval','db.adminCommand("ping").ok']
+      interval: 30s  timeout: 10s  retries: 5  start_period: 30s
+
+  api:
+    build: { context: ./api, target: production }
+    image: kitchen-api:local
+    environment:
+      MONGO_URI: 'mongodb://admin:Secret123!@db:27017/kitchendb?authSource=admin'
+      PORT: '3000'
+    ports: ['3000:3000']
+    depends_on: { db: { condition: service_healthy } }
+    networks: [kitchen-net]
+
+  web-ui:
+    build: { context: ./web-ui }
+    image: kitchen-web:local
+    ports: ['8080:80']
+    depends_on: { api: { condition: service_healthy } }
+    networks: [kitchen-net]
+
+networks:
+  kitchen-net: { driver: bridge, name: kitchen-network }
+volumes:
+  mongo-data: { driver: local, name: kitchen-mongo-data }</pre></div>
+  </div>
+
+  <div class="subsection" id="s2-run"><h3>2.3 Build and Run the Local Stack</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Build all Docker images</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>docker compose build --no-cache   <span class="cmt"># First run takes 3-7 min</span>
+docker images | grep kitchen      <span class="cmt"># Verify images were created</span></pre></div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Start all containers</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>docker compose up -d
+docker compose logs -f   <span class="cmt"># Watch logs (Ctrl+C to stop watching)</span>
+docker compose ps        <span class="cmt"># Check all containers are healthy</span></pre></div>
+      <div class="callout callout-success"><span class="icon">✅</span><div>All 3 show <code>Up (healthy)</code> — <code>kitchen-db</code>, <code>kitchen-api</code>, <code>kitchen-web</code></div></div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Test all endpoints</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>curl http://localhost:3000/health
+<span class="cmt"># Expected: {"status":"ok","db":"connected",...}</span>
+
+curl -X POST http://localhost:3000/orders \
+  -H 'Content-Type: application/json' \
+  -d '{"dish":"Masala Dosa"}'
+<span class="cmt"># Expected: {"_id":"...","dish":"Masala Dosa","status":"pending",...}</span>
+
+curl http://localhost:3000/metrics | grep http_requests
+
+open http://localhost:8080   <span class="cmt"># macOS — Web UI</span></pre></div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Docker debugging commands</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>docker exec -it kitchen-api sh                       <span class="cmt"># Shell into API container</span>
+docker exec -it kitchen-db mongosh -u admin -p Secret123!  <span class="cmt"># MongoDB shell</span>
+docker stats --no-stream                             <span class="cmt"># Live resource usage</span>
+docker compose down                                  <span class="cmt"># Stop (data preserved)</span>
+docker compose down -v                               <span class="cmt"># Stop AND erase all data</span></pre></div>
+    </div></div>
+  </div>
+
+  <div class="subsection" id="s2-hub"><h3>2.4 Push to Docker Hub (Optional)</h3>
+    <div class="callout callout-info"><span class="icon">ℹ️</span><div>If you are using <strong>Docker Desktop Kubernetes</strong> or the <strong>GitHub Actions Kind path</strong>, you can skip this step — images are loaded directly into the cluster without Docker Hub.</div></div>
+    <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>docker login
+docker tag kitchen-api:local YOUR-DOCKERHUB-USERNAME/kitchen-api:latest
+docker tag kitchen-web:local YOUR-DOCKERHUB-USERNAME/kitchen-web:latest
+docker push YOUR-DOCKERHUB-USERNAME/kitchen-api:latest
+docker push YOUR-DOCKERHUB-USERNAME/kitchen-web:latest</pre></div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 2 Complete — Docker Stack Running</h3>
+    <ul class="checklist">
+      <li><code>docker compose build</code> completes without errors</li>
+      <li><code>docker compose ps</code> shows all 3 containers <code>Up (healthy)</code></li>
+      <li><code>curl http://localhost:3000/health</code> returns <code>{"status":"ok","db":"connected"}</code></li>
+      <li>POST to <code>/orders</code> creates an order and returns the document</li>
+      <li>Browser opens <code>http://localhost:8080</code> and shows the Kitchen Web UI</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 3 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-3">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-3">☸️</div>
+    <div><h2>Phase 3: Kubernetes Concepts &amp; Cluster Setup</h2><div class="phase-sub">Understand what Kubernetes does and start your local cluster</div></div>
+  </div>
+  <div class="analogy-row">
+    <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Kubernetes is the Restaurant Manager. It decides: how many boxes to keep ready (replicas), which vehicle carries each box (node), what to do when a box is damaged (auto-restart), and when to call extra staff during the lunch rush (auto-scaling).</div>
+    <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Kubernetes is a container orchestration platform. You tell it WHAT you want — it figures out HOW to make that happen and keeps it that way continuously.</div>
+  </div>
+
+  <div class="subsection" id="s3-objects"><h3>3.1 Kubernetes Objects — Complete Reference</h3>
+    <div class="table-wrap"><table><thead><tr><th>Object</th><th>Kitchen Analogy</th><th>Technical Description</th></tr></thead><tbody>
+      <tr><td>Cluster</td><td>The entire restaurant chain</td><td>All nodes working together under one control plane</td></tr>
+      <tr><td>Node</td><td>A physical kitchen site</td><td>A machine (VM or physical server) that runs containers</td></tr>
+      <tr><td>Pod</td><td>One chef cooking one dish</td><td>Smallest deployable unit. Wraps 1+ containers. Ephemeral.</td></tr>
+      <tr><td>Deployment</td><td>The staffing plan</td><td>Maintains N Pod replicas. Handles rolling updates and rollback.</td></tr>
+      <tr><td>StatefulSet</td><td>Permanent locker assignment</td><td>Like Deployment but Pods get stable names (<code>mongodb-0</code>)</td></tr>
+      <tr><td>Service</td><td>The order ticket window</td><td>Stable IP/DNS for a group of Pods. Types: ClusterIP, NodePort, LoadBalancer</td></tr>
+      <tr><td>ConfigMap</td><td>Laminated reference sheet</td><td>Non-secret config: env vars, config files</td></tr>
+      <tr><td>Secret</td><td>The restaurant safe</td><td>Encrypted config: passwords, tokens, TLS certs</td></tr>
+      <tr><td>PersistentVolumeClaim</td><td>Renting a storage locker</td><td>Request for durable storage that survives Pod restarts</td></tr>
+      <tr><td>Namespace</td><td>VIP section vs general dining</td><td>Logical isolation. All our resources use: <code>kitchen-app</code></td></tr>
+      <tr><td>Probe (liveness)</td><td>Quality control check</td><td><code>GET /health</code> every 20s — restart Pod if it fails</td></tr>
+      <tr><td>Probe (readiness)</td><td>Ready-to-serve signal</td><td><code>GET /ready</code> — remove Pod from load balancer if not ready</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="subsection" id="s3-reconcile"><h3>3.2 How Kubernetes Reconciles State</h3>
+    <div class="arch-diagram">
+<span class="hl">YOUR YAML</span>       <span class="hl2">kubectl apply</span>   <span class="hl3">KUBERNETES API SERVER</span>
+─────────────    ────────────►   ─────────────────────────────
+replicas: 2                       reads desired: 2
+image: api:sha                    stores in etcd
+                                  ──► compares to actual: 0
+                                  → Controller creates 2 Pods
+                                  → Scheduler assigns to nodes
+──────────────────────────────────────────────────────────────
+Kubernetes watches continuously.
+If a Pod dies: actual=1, desired=2 → immediately starts replacement
+──────────────────────────────────────────────────────────────
+  <span class="hl">NODE 1</span>              <span class="hl2">NODE 2</span>              <span class="hl3">NODE 3</span>
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  api-pod-1   │   │  api-pod-2   │   │  mongodb-0   │
+│  web-pod-1   │   │  web-pod-2   │   │              │
+└──────────────┘   └──────────────┘   └──────────────┘
+K8s keeps actual state matching desired state at all times
+    </div>
+  </div>
+
+  <div class="subsection" id="s3-cluster"><h3>3.3 Start Your Local Kubernetes Cluster</h3>
+    <div class="path-tabs">
+      <div class="path-tab-buttons">
+        <button class="path-tab-btn path-a active" onclick="switchPath(this,'cluster')">🟢 Path A — Docker Desktop (Recommended)</button>
+        <button class="path-tab-btn path-b" onclick="switchPath(this,'cluster')">🔵 Path B — Minikube (Original)</button>
+      </div>
+      <div class="path-panel active" id="cluster-0">
+        <div class="path-badge path-badge-a">🟢 Path A — Docker Desktop</div>
+        <p>Docker Desktop's built-in Kubernetes is already running from Phase 0. No additional setup needed.</p>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Switch to the Docker Desktop context</div>
+          <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl config use-context docker-desktop
+kubectl get nodes
+<span class="cmt"># Expected: docker-desktop   Ready   control-plane   Xm   v1.28.x</span></pre></div>
+          <div class="callout callout-info"><span class="icon">💡</span><div>No separate VM. No networking complexity. Images you build with <code>docker build</code> are immediately available to the cluster — no push required.</div></div>
+        </div></div>
+      </div>
+      <div class="path-panel" id="cluster-1">
+        <div class="path-badge path-badge-b">🔵 Path B — Minikube</div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Start a 3-node Minikube cluster</div>
+          <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>minikube start --nodes 3 --cpus 2 --memory 4096 --driver docker
+<span class="cmt"># Low RAM: minikube start --nodes 2 --cpus 2 --memory 2048 --driver docker</span></pre></div>
+        </div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Enable required addons</div>
+          <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>minikube addons enable metrics-server
+minikube addons enable storage-provisioner
+kubectl get nodes
+<span class="cmt"># Expected: minikube Ready control-plane / minikube-m02 Ready / minikube-m03 Ready</span></pre></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s3-secrets"><h3>3.4 Create Namespace and Secrets</h3>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Create the kitchen-app namespace</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl apply -f k8s/namespace.yaml
+kubectl get namespaces   <span class="cmt"># Now shows kitchen-app in the list</span></pre></div>
+    </div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Create MongoDB Secret (NEVER in YAML files)</div>
+      <div class="callout callout-danger"><span class="icon">⚠️</span><div>Passwords must NEVER be stored in YAML files committed to Git. Kubernetes Secrets are created via kubectl commands.</div></div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl create secret generic mongodb-secret \
+  --from-literal=mongo-root-username=admin \
+  --from-literal=mongo-root-password=Secret123! \
+  --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+  --namespace kitchen-app
+
+kubectl describe secret mongodb-secret -n kitchen-app
+<span class="cmt"># Values shown as byte counts — not visible (this is correct)</span>
+
+<span class="cmt"># Decode for debugging only:</span>
+kubectl get secret mongodb-secret -n kitchen-app \
+  -o jsonpath='{.data.mongo-root-username}' | base64 --decode
+<span class="cmt"># Output: admin</span></pre></div>
+    </div></div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 3 Complete — Cluster Ready</h3>
+    <ul class="checklist">
+      <li><code>kubectl get nodes</code> shows at least 1 node with <code>STATUS: Ready</code></li>
+      <li><code>kubectl config current-context</code> shows <code>docker-desktop</code> or <code>minikube</code></li>
+      <li><code>kubectl apply -f k8s/namespace.yaml</code> creates the <code>kitchen-app</code> namespace</li>
+      <li><code>kubectl create secret</code> creates <code>mongodb-secret</code> (values as byte counts only)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 4 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-4">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-4">🚀</div>
+    <div><h2>Phase 4: Deploy App to Kubernetes</h2><div class="phase-sub">Write manifests and deploy all 3 services to the cluster</div></div>
+  </div>
+
+  <div class="subsection" id="s4-mongo"><h3>4.1 MongoDB StatefulSet</h3>
+    <div class="analogy-row">
+      <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>MongoDB is the walk-in fridge. It needs a permanent, named location — not a random shelf. StatefulSet gives it a stable address (<code>mongodb-0</code>) and a dedicated storage locker (PVC).</div>
+      <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>StatefulSet gives Pods stable names, dedicated PVCs per replica, and stable DNS: <code>mongodb-0.mongodb-service.kitchen-app</code> always resolves to the same Pod.</div>
+    </div>
+    <p>Open <code>k8s/db/statefulset.yaml</code> and paste:</p>
+    <div class="code-wrap"><div class="code-header"><span class="lang">yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: kitchen-app
+spec:
+  serviceName: 'mongodb-service'
+  replicas: 1
+  selector:
+    matchLabels: { app: mongodb }
+  template:
+    metadata:
+      labels: { app: mongodb }
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports: [{ containerPort: 27017 }]
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-root-username } }
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-root-password } }
+          volumeMounts: [{ name: mongo-storage, mountPath: /data/db }]
+          readinessProbe:
+            exec:
+              command: ['mongosh','--quiet','--eval','db.adminCommand("ping").ok']
+            initialDelaySeconds: 15  periodSeconds: 10  failureThreshold: 3
+          resources:
+            requests: { memory: '256Mi', cpu: '250m' }
+            limits:   { memory: '512Mi', cpu: '500m' }
+  volumeClaimTemplates:
+    - metadata: { name: mongo-storage }
+      spec:
+        accessModes: ['ReadWriteOnce']
+        storageClassName: standard
+        resources: { requests: { storage: 2Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: mongodb-service, namespace: kitchen-app }
+spec:
+  clusterIP: None      <span class="cmt"># Headless — required for StatefulSet DNS</span>
+  selector: { app: mongodb }
+  ports: [{ port: 27017, targetPort: 27017 }]</pre></div>
+  </div>
+
+  <div class="subsection" id="s4-api"><h3>4.2 API Deployment</h3>
+    <div class="callout callout-info"><span class="icon">ℹ️</span><div><strong>imagePullPolicy: Never</strong> — uses your locally built image directly (Docker Desktop or Kind). Change to <strong>Always</strong> only when using Docker Hub with a real registry.</div></div>
+    <div class="code-wrap"><div class="code-header"><span class="lang">yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  namespace: kitchen-app
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels: { app: kitchen-api }
+  template:
+    metadata:
+      labels: { app: kitchen-api }
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '3000'
+        prometheus.io/path: '/metrics'
+    spec:
+      containers:
+        - name: kitchen-api
+          image: kitchen-api:local
+          imagePullPolicy: Never    <span class="cmt"># Use local image — no Docker Hub needed</span>
+          ports: [{ containerPort: 3000 }]
+          envFrom: [{ configMapRef: { name: api-config } }]
+          env:
+            - name: MONGO_URI
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-uri } }
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 20  periodSeconds: 20  failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /ready, port: 3000 }
+            initialDelaySeconds: 10  periodSeconds: 10  failureThreshold: 2
+          resources:
+            requests: { memory: '128Mi', cpu: '100m' }
+            limits:   { memory: '256Mi', cpu: '500m' }
+          securityContext: { runAsNonRoot: true, runAsUser: 1001 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api-nodeport, namespace: kitchen-app }
+spec:
+  type: NodePort
+  selector: { app: kitchen-api }
+  ports: [{ port: 3000, targetPort: 3000, nodePort: 30000 }]</pre></div>
+  </div>
+
+  <div class="subsection" id="s4-webui"><h3>4.3 Web UI Deployment</h3>
+    <div class="code-wrap"><div class="code-header"><span class="lang">yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>apiVersion: apps/v1
+kind: Deployment
+metadata: { name: web-ui-deployment, namespace: kitchen-app }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: kitchen-web-ui } }
+  template:
+    metadata: { labels: { app: kitchen-web-ui } }
+    spec:
+      containers:
+        - name: kitchen-web-ui
+          image: kitchen-web:local
+          imagePullPolicy: Never
+          ports: [{ containerPort: 80 }]
+          livenessProbe:  { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 10 }
+          readinessProbe: { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 5 }
+          resources:
+            requests: { memory: '32Mi', cpu: '25m' }
+            limits:   { memory: '64Mi', cpu: '100m' }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: web-ui-service, namespace: kitchen-app }
+spec:
+  type: NodePort
+  selector: { app: kitchen-web-ui }
+  ports: [{ port: 80, targetPort: 80, nodePort: 30080 }]</pre></div>
+  </div>
+
+  <div class="subsection" id="s4-apply"><h3>4.4 Deploy Everything</h3>
+    <div class="path-tabs">
+      <div class="path-tab-buttons">
+        <button class="path-tab-btn path-a active" onclick="switchPath(this,'deploy')">🟢 Path A — Docker Desktop (One Command)</button>
+        <button class="path-tab-btn path-b" onclick="switchPath(this,'deploy')">🔵 Path B — Minikube (Manual)</button>
+      </div>
+      <div class="path-panel active" id="deploy-0">
+        <div class="path-badge path-badge-a">🟢 Path A — Docker Desktop</div>
+        <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>chmod +x scripts/local-setup.sh
+./scripts/local-setup.sh</pre></div>
+        <p style="font-size:.84rem;margin:10px 0">The script automatically: builds images → switches context → creates secret → deploys all manifests → waits for rollouts → prints URLs.</p>
+        <div class="url-cards">
+          <div class="url-card"><div class="svc">Web UI</div><div class="url">http://localhost:30080</div></div>
+          <div class="url-card"><div class="svc">API</div><div class="url">http://localhost:30000/health</div></div>
+          <div class="url-card"><div class="svc">Prometheus</div><div class="url">http://localhost:30090</div></div>
+          <div class="url-card"><div class="svc">Grafana</div><div class="url">http://localhost:30300</div><div class="cred">admin / kitchenadmin</div></div>
+        </div>
+      </div>
+      <div class="path-panel" id="deploy-1">
+        <div class="path-badge path-badge-b">🔵 Path B — Minikube</div>
+        <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre><span class="cmt"># Replace image placeholder first</span>
+sed -i '' 's/kitchen-api:local/YOUR-USER\/kitchen-api:latest/g' k8s/api/deployment.yaml
+sed -i '' 's/kitchen-web:local/YOUR-USER\/kitchen-web:latest/g' k8s/web-ui/deployment.yaml
+<span class="cmt"># Also change imagePullPolicy: Never → Always in both files</span>
+
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/db/statefulset.yaml
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=120s
+kubectl apply -f k8s/api/deployment.yaml
+kubectl apply -f k8s/web-ui/deployment.yaml
+kubectl get pods -n kitchen-app -w
+
+MINIKUBE_IP=$(minikube ip)
+curl http://$MINIKUBE_IP:30000/health
+minikube service web-ui-service -n kitchen-app</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s4-cmds"><h3>4.5 Essential kubectl Commands</h3>
+    <div class="table-wrap"><table><thead><tr><th>Command</th><th>What It Means</th></tr></thead><tbody>
+      <tr><td><code>kubectl get all -n kitchen-app</code></td><td>First command to run when debugging. Shows everything at once.</td></tr>
+      <tr><td><code>kubectl describe pod &lt;name&gt; -n kitchen-app</code></td><td>Full event log for one Pod. Start here when a Pod is stuck.</td></tr>
+      <tr><td><code>kubectl logs -f deploy/api-deployment -n kitchen-app</code></td><td>Live log stream from API. Like <code>docker logs -f</code></td></tr>
+      <tr><td><code>kubectl logs &lt;pod&gt; -n kitchen-app --previous</code></td><td>Logs from a crashed pod — shows WHY it died.</td></tr>
+      <tr><td><code>kubectl exec -it &lt;pod&gt; -n kitchen-app -- sh</code></td><td>Shell inside a Pod. Debug from inside.</td></tr>
+      <tr><td><code>kubectl rollout undo deploy/api-deployment -n kitchen-app</code></td><td>Instant rollback to previous version.</td></tr>
+      <tr><td><code>kubectl scale deploy api-deployment --replicas=4 -n kitchen-app</code></td><td>Scale up manually. Useful for testing HA.</td></tr>
+      <tr><td><code>kubectl top pods -n kitchen-app</code></td><td>Live CPU + memory usage. Requires metrics-server.</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="subsection" id="s4-probes"><h3>4.6 Liveness vs Readiness Probes</h3>
+    <div class="table-wrap"><table><thead><tr><th>Probe</th><th>Endpoint</th><th>Interval</th><th>Action When Fails</th></tr></thead><tbody>
+      <tr><td>Liveness</td><td><code>GET /health</code></td><td>Every 20s</td><td>Kubernetes <strong>RESTARTS</strong> the container. Use for: "is the app frozen or crashed?"</td></tr>
+      <tr><td>Readiness</td><td><code>GET /ready</code></td><td>Every 10s</td><td>Kubernetes <strong>REMOVES</strong> the Pod from Service endpoints. Traffic stops going to it.</td></tr>
+    </tbody></table></div>
+    <div class="callout callout-info"><span class="icon">💡</span><div><strong>Self-healing in action:</strong> <code>/health</code> returns 503 when MongoDB is disconnected → Liveness probe fails → Kubernetes restarts the Pod → reconnect loop fires → if MongoDB recovers, the app comes back healthy automatically.</div></div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 4 Complete — App Running in Kubernetes</h3>
+    <ul class="checklist">
+      <li><code>kubectl get pods -n kitchen-app</code> shows all pods Running <code>1/1</code></li>
+      <li>API health endpoint returns <code>{"status":"ok","db":"connected"}</code></li>
+      <li>Browser opens the Web UI and shows the order management interface</li>
+      <li><code>kubectl rollout undo</code> tested successfully</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 5 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-5">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-5">⚙️</div>
+    <div><h2>Phase 5: GitHub Actions CI/CD</h2><div class="phase-sub">Automate testing, building, and Kubernetes deployment on every git push</div></div>
+  </div>
+
+  <div class="subsection" id="s5-how"><h3>5.1 How GitHub Actions Works</h3>
+    <div class="pipeline">
+      <div style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-bottom:8px">git push origin main → triggers workflow</div>
+      <div class="pipeline-parallel">
+        <div class="pipeline-node pn-green"><div class="pn-label">Test (Node 18)</div><div class="pn-val">npm ci → ESLint → Jest</div></div>
+        <div class="pipeline-node pn-green"><div class="pn-label">Test (Node 20)</div><div class="pn-val">npm ci → ESLint → Jest</div></div>
+      </div>
+      <div style="text-align:center;color:var(--text-muted);font-size:.8rem;margin:4px 0">↓ BOTH must pass</div>
+      <div class="pipeline-parallel">
+        <div class="pipeline-node pn-blue"><div class="pn-label">Build Docker Images</div><div class="pn-val">kitchen-api + kitchen-web<br><small style="color:var(--text-muted)">(push to Hub optional)</small></div></div>
+      </div>
+      <div style="text-align:center;color:var(--text-muted);font-size:.8rem;margin:4px 0">↓</div>
+      <div class="pipeline-parallel">
+        <div class="pipeline-node pn-purple"><div class="pn-label">3-Node Kind Cluster</div><div class="pn-val">control-plane + 2 workers<br>Deploy → Smoke Tests</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s5-strategy"><h3>5.2 Deployment Strategy: Kind vs Remote Cluster</h3>
+    <div class="table-wrap"><table class="compare-old"><thead><tr><th>Feature</th><th>Original Guide</th><th>This Guide</th></tr></thead><tbody>
+      <tr><td>Where does K8s run?</td><td>Your laptop (Minikube)</td><td>Inside the GitHub Actions runner</td></tr>
+      <tr><td>How does CI reach it?</td><td><code>KUBECONFIG</code> secret required</td><td>Not needed — cluster lives in the runner</td></tr>
+      <tr><td>External access required?</td><td>Yes — laptop must be reachable</td><td>No</td></tr>
+      <tr><td>Image registry</td><td>Docker Hub required</td><td>Optional — images loaded directly into Kind</td></tr>
+      <tr><td>Cluster persists?</td><td>Yes (your Minikube)</td><td>No — fresh cluster per workflow run</td></tr>
+      <tr><td>Cost</td><td>$0 (local)</td><td>$0 (GitHub free tier)</td></tr>
+    </tbody></table></div>
+    <div class="callout callout-new"><span class="icon">✨</span><div><strong>Why Kind?</strong> Kind (Kubernetes IN Docker) runs a real 3-node K8s cluster <em>inside</em> the GitHub runner's Docker environment. No exposure, no costs, no maintenance. When the workflow finishes, the cluster is gone. Next push creates a brand new, perfectly reproducible cluster.</div></div>
+  </div>
+
+  <div class="subsection" id="s5-secrets"><h3>5.3 Add GitHub Secrets</h3>
+    <p>Navigate to: <code>github.com/YOUR-USERNAME/kitchen-app</code> → <strong>Settings</strong> → <strong>Secrets and variables</strong> → <strong>Actions</strong></p>
+    <div class="table-wrap"><table><thead><tr><th>Secret Name</th><th>Value</th><th>Required For</th></tr></thead><tbody>
+      <tr><td><code>DOCKERHUB_USERNAME</code></td><td>Your Docker Hub username</td><td>Optional — only to push images</td></tr>
+      <tr><td><code>DOCKERHUB_TOKEN</code></td><td>Docker Hub access token</td><td>Optional — only to push images</td></tr>
+    </tbody></table></div>
+    <div class="callout callout-success"><span class="icon">✅</span><div>You do <strong>not</strong> need a <code>KUBECONFIG</code> secret. The pipeline creates its own cluster inside the runner. This is the key difference from the original guide.</div></div>
+  </div>
+
+  <div class="subsection" id="s5-workflow"><h3>5.4 The Complete CI/CD Workflow File</h3>
+    <p>Open <code>.github/workflows/ci-cd.yml</code> and paste:</p>
+    <div class="code-wrap"><div class="code-header"><span class="lang">yaml — .github/workflows/ci-cd.yml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>name: Kitchen App CI/CD — 3-Node Kind Cluster
+
+on:
+  push:     { branches: [main] }
+  pull_request: { branches: [main] }
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  <span class="cmt"># ── JOB 1: Test on Node 18 AND 20 in parallel ─────────────────</span>
+  matrix-test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { node-version: ['18', '20'] }
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: ${{ matrix.node-version }}, cache: npm, cache-dependency-path: api/package-lock.json }
+      - run: npm ci
+        working-directory: api
+      - run: npm run lint
+        working-directory: api
+      - run: npm test
+        working-directory: api
+        env: { NODE_ENV: test, CI: 'true' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: coverage-node-${{ matrix.node-version }}, path: api/coverage/, retention-days: 7 }
+
+  <span class="cmt"># ── JOB 2: Build Docker images ────────────────────────────────</span>
+  build-push:
+    name: Build Docker Images
+    needs: matrix-test
+    runs-on: ubuntu-latest
+    outputs: { image-tag: ${{ steps.tag.outputs.value }} }
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "value=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          target: production
+          push: false
+          tags: kitchen-api:local
+          outputs: type=docker,dest=/tmp/kitchen-api.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./web-ui
+          push: false
+          tags: kitchen-web:local
+          outputs: type=docker,dest=/tmp/kitchen-web.tar
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/upload-artifact@v4
+        with: { name: docker-images, path: /tmp/*.tar, retention-days: 1 }
+
+  <span class="cmt"># ── JOB 3: E2E on real 3-node Kind cluster ────────────────────</span>
+  <span class="cmt">#    No remote server. No KUBECONFIG. No cloud account.</span>
+  e2e-k8s:
+    name: E2E — 3-Node Kind Cluster
+    needs: build-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: docker-images, path: /tmp/ }
+      - run: docker load < /tmp/kitchen-api.tar && docker load < /tmp/kitchen-web.tar
+
+      - name: Create 3-node Kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kitchen-cluster
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+              - role: control-plane
+                extraPortMappings:
+                  - { containerPort: 30000, hostPort: 30000 }
+                  - { containerPort: 30080, hostPort: 30080 }
+                  - { containerPort: 30090, hostPort: 30090 }
+                  - { containerPort: 30300, hostPort: 30300 }
+              - role: worker
+              - role: worker
+
+      - run: kubectl wait --for=condition=Ready nodes --all --timeout=120s && kubectl get nodes
+
+      - name: Load images into Kind cluster nodes
+        run: |
+          kind load docker-image kitchen-api:local --name kitchen-cluster
+          kind load docker-image kitchen-web:local --name kitchen-cluster
+
+      - run: kubectl apply -f k8s/namespace.yaml
+      - run: |
+          kubectl create secret generic mongodb-secret \
+            --from-literal=mongo-root-username=admin \
+            --from-literal=mongo-root-password=Secret123! \
+            --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+            --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+      - run: kubectl apply -f k8s/db/statefulset.yaml && kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=150s
+      - run: kubectl apply -f k8s/api/deployment.yaml && kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=120s
+      - run: kubectl apply -f k8s/web-ui/deployment.yaml && kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=60s
+      - run: kubectl apply -f k8s/monitoring/prometheus-config.yaml && kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+      - run: kubectl get pods -n kitchen-app -o wide && kubectl get svc -n kitchen-app
+
+      - name: Smoke test — API health
+        run: |
+          for i in $(seq 1 15); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:30000/health)
+            [[ "$CODE" == "200" ]] && { echo "✅ API health OK"; break; }
+            echo "  Attempt $i: HTTP $CODE — retrying..."; sleep 5
+          done
+          [[ "$CODE" == "200" ]] || exit 1
+
+      - name: Smoke test — Create order, list orders, metrics, web UI
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:30000/orders \
+            -H 'Content-Type: application/json' -d '{"dish":"CI Test Order"}' | grep -q 201
+          curl -s http://localhost:30000/metrics | grep -q 'http_requests_total'
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:30080 | grep -q 200
+          echo "✅ All smoke tests passed"
+
+      - name: Final status
+        if: always()
+        run: kubectl get pods -n kitchen-app && kubectl get events -n kitchen-app --sort-by=.lastTimestamp | tail -15
+
+      - name: Collect logs on failure
+        if: failure()
+        run: kubectl logs -n kitchen-app -l app=kitchen-api --tail=100 || true</pre></div>
+  </div>
+
+  <div class="subsection" id="s5-trigger"><h3>5.5 Trigger and Watch the Pipeline</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Push code to trigger the workflow</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>git add .
+git commit -m "feat: add CI/CD pipeline and K8s manifests"
+git push origin main</pre></div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Navigate the GitHub Actions UI</div>
+      <ol style="padding-left:18px;font-size:.84rem;line-height:1.9">
+        <li>Go to your repo → click the <strong>Actions</strong> tab</li>
+        <li>Click <strong>Kitchen App CI/CD</strong> → the running workflow with a yellow spinner</li>
+        <li>Job graph: <code>matrix-test (×2)</code> → <code>build-push</code> → <code>e2e-k8s</code></li>
+        <li>Click any job to see step-by-step logs expand in real time</li>
+        <li>All 3 jobs show <strong>green checkmarks</strong> when complete</li>
+      </ol>
+      <div class="callout callout-success"><span class="icon">✅</span><div>All 3 jobs green. The <code>e2e-k8s</code> job shows the 3-node cluster, all pods running, and all smoke tests passing.</div></div>
+    </div></div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 5 Complete — CI/CD Pipeline Active</h3>
+    <ul class="checklist">
+      <li><code>.github/workflows/ci-cd.yml</code> committed and pushed to main</li>
+      <li>Both Node 18 and Node 20 test jobs show green checkmarks</li>
+      <li>Coverage reports appear as downloadable artifacts in the run summary</li>
+      <li><code>build-push</code> job builds both images successfully</li>
+      <li><code>e2e-k8s</code> job: 3-node Kind cluster created, all pods running, all smoke tests pass</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ PHASE 6 ══════════════════════════════════ -->
+<section class="phase-section" id="phase-6">
+  <div class="phase-header">
+    <div class="phase-icon phase-bg-6">📊</div>
+    <div><h2>Phase 6: Prometheus &amp; Grafana Monitoring</h2><div class="phase-sub">Add real-time observability: metrics collection, dashboards, and alerts</div></div>
+  </div>
+  <div class="analogy-row">
+    <div class="analogy-box analogy-kitchen"><div class="label">🍽 Kitchen Analogy</div>Prometheus is the Health Inspector walking every kitchen station every 15 seconds with a clipboard. Grafana is the control room big screen — turning those clipboard notes into live graphs and red alarm lights.</div>
+    <div class="analogy-box analogy-tech"><div class="label">💻 Technical Reality</div>Prometheus scrapes <code>/metrics</code> every 15s and stores time-series data. Grafana renders dashboards from PromQL queries and fires alert rules.</div>
+  </div>
+
+  <div class="subsection" id="s6-how"><h3>6.1 How the Metrics Pipeline Works</h3>
+    <div class="arch-diagram">
+<span class="hl">KITCHEN API (/metrics)</span>                  <span class="hl2">PROMETHEUS</span>
+┌──────────────────────────────────┐   ┌─────────────────────────┐
+│ http_requests_total{...} 42      │◄──│  scrapes every 15s      │
+│ kitchen_orders_created_total 17  │   │  time-series database   │
+│ http_request_duration_seconds... │   └──────────┬──────────────┘
+└──────────────────────────────────┘              │ PromQL queries
+                                                  ▼
+                                        <span class="hl3">┌─────────────────────┐</span>
+                                        <span class="hl3">│       GRAFANA        │</span>
+                                        <span class="hl3">│  Dashboards, Alerts  │</span>
+                                        <span class="hl3">└─────────────────────┘</span>
+    </div>
+  </div>
+
+  <div class="subsection" id="s6-prometheus"><h3>6.2 Prometheus Manifest</h3>
+    <p>Open <code>k8s/monitoring/prometheus-config.yaml</code> and paste. See <a href="#phase-4">Phase 4</a> for the full YAML — key points:</p>
+    <div class="table-wrap"><table><thead><tr><th>Key Setting</th><th>Value</th><th>Purpose</th></tr></thead><tbody>
+      <tr><td>scrape_interval</td><td>15s</td><td>How often Prometheus scrapes each target</td></tr>
+      <tr><td>job: kitchen-api</td><td>kubernetes_sd_configs</td><td>Discovers pods with <code>prometheus.io/scrape: "true"</code> annotation</td></tr>
+      <tr><td>NodePort</td><td>30090</td><td>Exposes Prometheus UI on localhost:30090</td></tr>
+      <tr><td>Alert: KitchenAPIDown</td><td>replicas_ready == 0</td><td>Fires when API deployment has no ready pods</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="subsection" id="s6-grafana"><h3>6.3 Grafana Manifest</h3>
+    <p>Open <code>k8s/monitoring/grafana-deployment.yaml</code> and paste. Key settings:</p>
+    <div class="table-wrap"><table><thead><tr><th>Setting</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Admin credentials</td><td><code>admin</code> / <code>kitchenadmin</code></td></tr>
+      <tr><td>Auto-provisioned datasource</td><td>Prometheus at <code>http://prometheus-service:9090</code></td></tr>
+      <tr><td>NodePort</td><td>30300</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <div class="subsection" id="s6-use"><h3>6.4 Deploy and Use Monitoring</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Deploy Prometheus and Grafana</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl apply -f k8s/monitoring/prometheus-config.yaml
+kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+kubectl get pods -n kitchen-app | grep -E 'prometheus|grafana'
+<span class="cmt"># Expected: prometheus-xxx   1/1   Running / grafana-xxx   1/1   Running</span></pre></div>
+    </div></div>
+
+    <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Verify Prometheus is scraping the API</div>
+      <ol style="padding-left:18px;font-size:.84rem;line-height:1.9">
+        <li>Open <a href="http://localhost:30090">http://localhost:30090</a></li>
+        <li>Click <strong>Status → Targets</strong></li>
+        <li>Look for <code>kitchen-api</code> — State: <strong>UP</strong> (green dot)</li>
+      </ol>
+    </div></div>
+
+    <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Log in to Grafana and verify datasource</div>
+      <ol style="padding-left:18px;font-size:.84rem;line-height:1.9">
+        <li>Open <a href="http://localhost:30300">http://localhost:30300</a> → <code>admin</code> / <code>kitchenadmin</code></li>
+        <li>Left sidebar → <strong>Connections → Data sources</strong> → Prometheus already listed</li>
+        <li>Click it → <strong>Save &amp; test</strong></li>
+      </ol>
+      <div class="callout callout-success"><span class="icon">✅</span><div>Green banner: "Successfully queried the Prometheus API"</div></div>
+    </div></div>
+
+    <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Import pre-built dashboards</div>
+      <p>Left sidebar → <strong>Dashboards → New → Import</strong> → type dashboard ID → <strong>Load</strong></p>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Dashboard</th></tr></thead><tbody>
+        <tr><td><code>15661</code></td><td>Kubernetes cluster CPU, memory, Pod counts</td></tr>
+        <tr><td><code>11159</code></td><td>Node.js application metrics</td></tr>
+        <tr><td><code>12740</code></td><td>MongoDB metrics</td></tr>
+        <tr><td><code>7249</code></td><td>Kubernetes cluster health</td></tr>
+      </tbody></table></div>
+    </div></div>
+
+    <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Custom Kitchen panels — PromQL queries</div>
+      <div class="promql-grid">
+        <div class="promql-row"><div class="promql-q">Request Rate (req/sec)</div><div class="promql-v">sum(rate(http_requests_total[5m]))</div></div>
+        <div class="promql-row"><div class="promql-q">Orders Created</div><div class="promql-v">kitchen_orders_created_total</div></div>
+        <div class="promql-row"><div class="promql-q">Requests by Status Code</div><div class="promql-v">sum by(status_code)(rate(http_requests_total[5m]))</div></div>
+        <div class="promql-row"><div class="promql-q">p95 Response Time</div><div class="promql-v">histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))</div></div>
+        <div class="promql-row"><div class="promql-q">API Ready Pods</div><div class="promql-v">kube_deployment_status_replicas_ready{deployment="api-deployment"}</div></div>
+      </div>
+    </div></div>
+
+    <div class="step"><div class="step-num">6</div><div class="step-body"><div class="step-title">Test alert firing</div>
+      <div class="code-wrap"><div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><pre>kubectl scale deployment api-deployment --replicas=0 -n kitchen-app
+<span class="cmt"># Grafana → Alerting → Alert rules
+# Watch: Normal → Pending (1 min) → Firing (red)</span>
+
+kubectl scale deployment api-deployment --replicas=2 -n kitchen-app
+<span class="cmt"># Alert returns to Normal once 2 pods are Ready</span></pre></div>
+    </div></div>
+
+    <h4>All Service Access URLs</h4>
+    <div class="url-cards">
+      <div class="url-card"><div class="svc">Web UI</div><div class="url">http://localhost:30080</div></div>
+      <div class="url-card"><div class="svc">API</div><div class="url">http://localhost:30000/health</div></div>
+      <div class="url-card"><div class="svc">Prometheus</div><div class="url">http://localhost:30090</div></div>
+      <div class="url-card"><div class="svc">Grafana</div><div class="url">http://localhost:30300</div><div class="cred">admin / kitchenadmin</div></div>
+    </div>
+  </div>
+
+  <div class="subsection"><h3>✅ Phase 6 Complete — Full Observability Stack Running</h3>
+    <ul class="checklist">
+      <li><code>kubectl apply -f k8s/monitoring/</code> deploys without errors</li>
+      <li>Prometheus Targets page shows <code>kitchen-api</code> as UP (green)</li>
+      <li>Grafana datasource test returns: "Successfully queried the Prometheus API"</li>
+      <li>Pre-built dashboard (ID 15661) imported and shows live cluster data</li>
+      <li>Alert test: scaling API to 0 causes alert to fire, scaling back resolves it</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ TROUBLESHOOTING ══════════════════════════ -->
+<section class="phase-section" id="troubleshooting">
+  <div class="phase-header">
+    <div class="phase-icon" style="background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.2)">🔧</div>
+    <div><h2>Troubleshooting Reference</h2><div class="phase-sub">Click any error to expand the root cause and fix</div></div>
+  </div>
+
+  <div class="trouble-group" id="ts-docker"><h4>Docker Issues</h4>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Cannot connect to Docker daemon</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Docker Desktop is not running.</div><div class="fix"><strong>Fix:</strong> Open Docker Desktop app and wait for the whale icon to stop animating (~60s).</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Permission denied (Linux)</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> User not in docker group.</div><div class="fix"><strong>Fix:</strong> <code>sudo usermod -aG docker $USER</code> then log out and back in. Or: <code>newgrp docker</code></div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Port is already allocated :3000</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Another process uses that port.</div><div class="fix"><strong>Fix:</strong> <code>lsof -i :3000</code> (Mac/Linux) or <code>netstat -ano | findstr :3000</code> (Windows). Kill the PID.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">service 'api' failed to build</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> ESLint errors caught in the Dockerfile builder stage.</div><div class="fix"><strong>Fix:</strong> Read the ESLint output — it shows the file and line number. Fix the code error, then rebuild.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Container exits immediately</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> App crashes on startup — usually wrong env var.</div><div class="fix"><strong>Fix:</strong> <code>docker compose logs api</code> — check MONGO_URI is correct.</div></div></div>
+  </div>
+
+  <div class="trouble-group" id="ts-k8s"><h4>Kubernetes Issues</h4>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">ImagePullBackOff</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Image name wrong, not pushed, or Docker Hub rate limit.</div><div class="fix"><strong>Fix (local path):</strong> Ensure <code>imagePullPolicy: Never</code> and image was built locally. <code>docker images | grep kitchen</code><br><strong>Fix (remote path):</strong> <code>kubectl describe pod &lt;name&gt; -n kitchen-app</code> → read Events.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">CrashLoopBackOff</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> App crashes on startup — usually wrong MONGO_URI or missing Secret.</div><div class="fix"><strong>Fix:</strong> <code>kubectl logs &lt;pod&gt; -n kitchen-app --previous</code> — read the crash reason carefully.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Pod stuck in Pending (forever)</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Insufficient CPU/memory on nodes OR PVC cannot be created.</div><div class="fix"><strong>Fix:</strong> <code>kubectl describe pod &lt;name&gt; -n kitchen-app</code> → Events section shows exact reason. For PVC: <code>minikube addons enable storage-provisioner</code></div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">OOMKilled (Exit 137)</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Container exceeded memory limits.</div><div class="fix"><strong>Fix:</strong> Increase <code>limits.memory</code> in deployment YAML from 256Mi to 512Mi, then <code>kubectl apply</code>.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Pods not updating after kubectl apply</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> <code>imagePullPolicy: Never</code> and old image still in Docker daemon.</div><div class="fix"><strong>Fix:</strong> Rebuild the image: <code>docker build -t kitchen-api:local ./api --target production</code> then re-apply.</div></div></div>
+  </div>
+
+  <div class="trouble-group" id="ts-dd"><h4>Docker Desktop Kubernetes Issues</h4>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">no server found for cluster docker-desktop</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Kubernetes not enabled or still starting.</div><div class="fix"><strong>Fix:</strong> Docker Desktop → Settings → Kubernetes → check enabled → wait 2 minutes.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">context docker-desktop not found</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> kubectl context never set to docker-desktop.</div><div class="fix"><strong>Fix:</strong> <code>kubectl config use-context docker-desktop</code></div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Pods stuck in Pending (Docker Desktop)</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Insufficient Docker Desktop resources.</div><div class="fix"><strong>Fix:</strong> Docker Desktop → Settings → Resources → increase Memory to at least 4GB and CPU to 4.</div></div></div>
+  </div>
+
+  <div class="trouble-group" id="ts-gha"><h4>GitHub Actions Issues</h4>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">ImagePullBackOff in Kind E2E</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Image not loaded into Kind nodes before kubectl apply.</div><div class="fix"><strong>Fix:</strong> Ensure the <code>kind load docker-image</code> step ran successfully. Check step output for errors.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">unauthorized: access token invalid</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> DOCKERHUB_TOKEN expired or wrong.</div><div class="fix"><strong>Fix:</strong> Generate a new token at hub.docker.com → Account Settings → Security. Update the secret.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Lint failed: no-var error</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> JavaScript uses <code>var</code> keyword.</div><div class="fix"><strong>Fix:</strong> Change <code>var</code> to <code>const</code> or <code>let</code> in the file shown in the lint output. Re-push.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Tests fail on Node 18 but pass on Node 20</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Node version incompatibility.</div><div class="fix"><strong>Fix:</strong> Check <code>package.json</code> <code>engines.node</code> field. If it is <code>&gt;=20</code>, change to <code>&gt;=18</code>.</div></div></div>
+  </div>
+
+  <div class="trouble-group" id="ts-prom"><h4>Prometheus &amp; Grafana Issues</h4>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Prometheus target 'kitchen-api' DOWN</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> <code>api-service</code> not found or <code>/metrics</code> not responding.</div><div class="fix"><strong>Fix:</strong> <code>kubectl get svc -n kitchen-app</code> — verify <code>api-service</code> exists. Test: <code>curl http://localhost:30000/metrics</code></div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Grafana 'No data' on all panels</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> Datasource URL is wrong (pointing to localhost instead of service).</div><div class="fix"><strong>Fix:</strong> Edit datasource: change URL to <code>http://prometheus-service:9090</code>. Click Save &amp; Test.</div></div></div>
+    <div class="trouble-row" onclick="this.classList.toggle('open')"><div class="trouble-err"><span class="err-icon">⬤</span><span class="err-text">Alert stays Normal after scaling to 0</span><span class="chevron">▶</span></div><div class="trouble-body"><div class="cause"><strong>Root cause:</strong> <code>kube_*</code> metrics unavailable.</div><div class="fix"><strong>Fix:</strong> Enable metrics-server: <code>minikube addons enable metrics-server</code>. Wait 3 minutes for data to populate.</div></div></div>
+  </div>
+
+  <!-- Cheatsheet -->
+  <div class="subsection" id="ts-cheat"><h3>Quick Diagnostic Cheatsheet</h3>
+    <div class="cheatsheet">
+      <div class="cheatsheet-group"><h5>🌐 Cluster Health</h5>
+        <code class="cmd">kubectl get nodes</code>
+        <code class="cmd">kubectl top nodes</code>
+        <code class="cmd">kubectl get events -n kitchen-app --sort-by=.lastTimestamp</code>
+      </div>
+      <div class="cheatsheet-group"><h5>🔍 Pod Diagnosis</h5>
+        <code class="cmd">kubectl get pods -n kitchen-app -o wide</code>
+        <code class="cmd">kubectl describe pod &lt;NAME&gt; -n kitchen-app</code>
+        <code class="cmd">kubectl logs &lt;NAME&gt; -n kitchen-app --previous</code>
+        <code class="cmd">kubectl exec -it &lt;NAME&gt; -n kitchen-app -- sh</code>
+      </div>
+      <div class="cheatsheet-group"><h5>🔌 Service Connectivity</h5>
+        <code class="cmd">kubectl get svc -n kitchen-app</code>
+        <code class="cmd">kubectl run curlpod --image=curlimages/curl --rm -it -n kitchen-app -- curl http://api-service:3000/health</code>
+      </div>
+      <div class="cheatsheet-group"><h5>↩️ Rollback</h5>
+        <code class="cmd">kubectl rollout history deployment/api-deployment -n kitchen-app</code>
+        <code class="cmd">kubectl rollout undo deployment/api-deployment -n kitchen-app</code>
+        <code class="cmd">kubectl rollout status deployment/api-deployment -n kitchen-app</code>
+      </div>
+      <div class="cheatsheet-group"><h5>🔑 Secrets</h5>
+        <code class="cmd">kubectl get secrets -n kitchen-app</code>
+        <code class="cmd">kubectl get secret mongodb-secret -n kitchen-app -o jsonpath='{.data.mongo-root-username}' | base64 --decode</code>
+      </div>
+      <div class="cheatsheet-group"><h5>🗑️ Tear Down (Docker Desktop)</h5>
+        <code class="cmd">./scripts/teardown.sh</code>
+        <code class="cmd">kubectl delete namespace kitchen-app</code>
+        <code class="cmd">docker rmi kitchen-api:local kitchen-web:local</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- PromQL -->
+  <div class="subsection" id="ts-promql"><h3>Common PromQL Queries</h3>
+    <div class="promql-grid">
+      <div class="promql-row"><div class="promql-q">Is the API receiving requests?</div><div class="promql-v">sum(rate(http_requests_total[5m]))</div></div>
+      <div class="promql-row"><div class="promql-q">What is the error rate?</div><div class="promql-v">sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))</div></div>
+      <div class="promql-row"><div class="promql-q">How many orders created?</div><div class="promql-v">kitchen_orders_created_total</div></div>
+      <div class="promql-row"><div class="promql-q">p95 latency</div><div class="promql-v">histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))</div></div>
+      <div class="promql-row"><div class="promql-q">How many pods are ready?</div><div class="promql-v">kube_deployment_status_replicas_ready{namespace="kitchen-app"}</div></div>
+      <div class="promql-row"><div class="promql-q">Is MongoDB connected?</div><div class="promql-v">mongodb_connection_status</div></div>
+      <div class="promql-row"><div class="promql-q">API CPU usage</div><div class="promql-v">rate(process_cpu_seconds_total[5m])</div></div>
+    </div>
+  </div>
+
+  <!-- File tree -->
+  <div class="subsection"><h3>Project Structure Reference</h3>
+    <div class="filetree">
+<span class="dir">kitchen-app/</span>
+├── <span class="dir">api/</span>
+│   ├── <span class="file">server.js</span>          <span class="note"># Express API — orders, health, /metrics</span>
+│   ├── <span class="file">server.test.js</span>     <span class="note"># Jest tests (mocked MongoDB)</span>
+│   ├── <span class="file">package.json</span>
+│   ├── <span class="file">.eslintrc.json</span>
+│   └── <span class="file">Dockerfile</span>         <span class="note"># Multi-stage: lint → lean production</span>
+├── <span class="dir">web-ui/</span>
+│   ├── <span class="file">index.html</span>         <span class="note"># Single-page order management UI</span>
+│   ├── <span class="file">nginx.conf</span>
+│   └── <span class="file">Dockerfile</span>
+├── <span class="dir">db/init/</span>
+│   └── <span class="file">init.js</span>            <span class="note"># MongoDB seed data + indexes</span>
+├── <span class="dir">k8s/</span>
+│   ├── <span class="file">namespace.yaml</span>
+│   ├── <span class="dir">api/</span>               <span class="note"># ConfigMap + Deployment (imagePullPolicy: Never) + Services</span>
+│   ├── <span class="dir">web-ui/</span>            <span class="note"># Deployment + NodePort Service</span>
+│   ├── <span class="dir">db/</span>                <span class="note"># StatefulSet + Headless Service + PVC</span>
+│   └── <span class="dir">monitoring/</span>        <span class="note"># Prometheus + RBAC + AlertRules / Grafana</span>
+├── <span class="dir">.github/workflows/</span>
+│   └── <span class="file">ci-cd.yml</span>          <span class="note"># 3-job pipeline: test → build → Kind E2E</span>
+├── <span class="dir">scripts/</span>
+│   ├── <span class="file">local-setup.sh</span>     <span class="note"># One-command Docker Desktop deploy</span>
+│   └── <span class="file">teardown.sh</span>        <span class="note"># Remove everything from local cluster</span>
+├── <span class="file">docker-compose.yml</span>     <span class="note"># Pure Docker 3-container stack (no K8s)</span>
+└── <span class="file">GUIDE.html</span>             <span class="note"># This document</span>
+    </div>
+  </div>
+</section>
+
+</main><!-- /main -->
+
+<script>
+/* ── Sidebar nav toggle ─────────────────────────────────────── */
+function toggleNav(el, idx) {
+  const sub = document.getElementById('nav-' + idx);
+  const allSubs = document.querySelectorAll('.nav-sub');
+  const allPhases = document.querySelectorAll('.nav-phase');
+  const isOpen = sub.classList.contains('open');
+
+  allSubs.forEach(s => s.classList.remove('open'));
+  allPhases.forEach(p => p.classList.remove('active'));
+
+  if (!isOpen) {
+    sub.classList.add('open');
+    el.classList.add('active');
+  }
+}
+
+/* ── OS tab switcher ────────────────────────────────────────── */
+function switchOS(btn, group, tab) {
+  const btns = btn.closest('.os-tab-buttons').querySelectorAll('.os-tab-btn');
+  const panels = btn.closest('.os-tabs').querySelectorAll('.os-tab-panel');
+  btns.forEach(b => b.classList.remove('active'));
+  panels.forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(group + '-' + tab).classList.add('active');
+}
+
+/* ── Path A / B switcher ────────────────────────────────────── */
+function switchPath(btn, group) {
+  const btns = btn.closest('.path-tab-buttons').querySelectorAll('.path-tab-btn');
+  const panels = btn.closest('.path-tabs').querySelectorAll('.path-panel');
+  const idx = Array.from(btns).indexOf(btn);
+  btns.forEach(b => b.classList.remove('active'));
+  panels.forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  panels[idx].classList.add('active');
+}
+
+/* ── Copy button ────────────────────────────────────────────── */
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+/* ── Active nav on scroll ───────────────────────────────────── */
+const sections = document.querySelectorAll('.phase-section');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      const phaseIdx = { 'phase-0':0,'phase-1':1,'phase-2':2,'phase-3':3,'phase-4':4,'phase-5':5,'phase-6':6,'troubleshooting':7 }[id];
+      if (phaseIdx !== undefined) {
+        document.querySelectorAll('.nav-phase').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-sub').forEach(s => s.classList.remove('open'));
+        const ph = document.querySelectorAll('.nav-phase')[phaseIdx];
+        const sub = document.getElementById('nav-' + phaseIdx);
+        if (ph) ph.classList.add('active');
+        if (sub) sub.classList.add('open');
+      }
+    }
+  });
+}, { threshold: 0.15 });
+sections.forEach(s => observer.observe(s));
+
+/* ── Close sidebar on mobile nav click ─────────────────────── */
+document.querySelectorAll('#sidebar a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
