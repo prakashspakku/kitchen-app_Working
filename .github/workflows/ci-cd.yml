@@ -131,6 +131,10 @@ jobs:
             --from-literal=PORT=3000 \
             --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
       - run: |
+          kubectl create configmap api-server-override \
+            --from-file=server.js=api/server.js \
+            --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+      - run: |
           kubectl create secret generic mongodb-secret \
             --from-literal=mongo-root-username=admin \
             --from-literal=mongo-root-password=Secret123! \
@@ -138,7 +142,7 @@ jobs:
             --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
 
       - run: kubectl apply -f k8s/db/statefulset.yaml && kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=150s
-      - run: kubectl apply -f k8s/api/deployment.yaml && kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=120s
+      - run: kubectl apply -f k8s/api/deployment.yaml && kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
       - run: kubectl apply -f k8s/web-ui/deployment.yaml && kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=60s
       - name: Deploy monitoring (optional)
         run: |
