@@ -26,6 +26,7 @@ spec:
             exec:
               command: ['mongosh','--quiet','--eval','db.adminCommand("ping").ok']
             initialDelaySeconds: 15
+            timeoutSeconds: 5
             periodSeconds: 10
             failureThreshold: 3
           resources:
