@@ -1,12 +1,14 @@
 name: Kitchen App CI/CD — 3-Node Kind Cluster
 
 on:
-  push:     { branches: [main] }
-  pull_request: { branches: [main] }
-  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -15,29 +17,39 @@ jobs:
     name: Test (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
-      matrix: { node-version: ['18', '20'] }
+      matrix:
+        node-version: [18, 20]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: ${{ matrix.node-version }}, cache: npm, cache-dependency-path: api/package-lock.json }
+        with:
+          node-version: "${{ matrix.node-version }}"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
       - run: npm ci
         working-directory: api
       - run: npm run lint
         working-directory: api
       - run: npm test
         working-directory: api
-        env: { NODE_ENV: test, CI: 'true' }
+        env:
+          NODE_ENV: test
+          CI: "true"
       - uses: actions/upload-artifact@v4
         if: always()
-        with: { name: coverage-node-${{ matrix.node-version }}, path: api/coverage/, retention-days: 7 }
+        with:
+          name: coverage-node-${{ matrix.node-version }}
+          path: api/coverage/
+          retention-days: 7
 
   # ── JOB 2: Build Docker images ────────────────────────────────
   build-push:
     name: Build Docker Images
     needs: matrix-test
     runs-on: ubuntu-latest
-    outputs: { image-tag: ${{ steps.tag.outputs.value }} }
+    outputs:
+      image-tag: ${{ steps.tag.outputs.value }}
     steps:
       - uses: actions/checkout@v4
       - id: tag
@@ -61,7 +73,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - uses: actions/upload-artifact@v4
-        with: { name: docker-images, path: /tmp/*.tar, retention-days: 1 }
+        with:
+          name: docker-images
+          path: /tmp/*.tar
+          retention-days: 1
 
   # ── JOB 3: E2E on real 3-node Kind cluster ────────────────────
   #    No remote server. No KUBECONFIG. No cloud account.
@@ -72,7 +87,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { name: docker-images, path: /tmp/ }
+        with:
+          name: docker-images
+          path: /tmp/
       - run: docker load < /tmp/kitchen-api.tar && docker load < /tmp/kitchen-web.tar
 
       - name: Create 3-node Kind cluster
