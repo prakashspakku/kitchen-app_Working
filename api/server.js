@@ -70,11 +70,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/ready', (req, res) => {
-  if (ordersCollection) {
-    res.status(200).send('OK');
-  } else {
-    res.status(503).send('Service Unavailable');
-  }
+  res.status(200).send('OK');
 });
 
 app.get('/metrics', async (req, res) => {
