@@ -22,13 +22,6 @@ spec:
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-root-password } }
           volumeMounts: [{ name: mongo-storage, mountPath: /data/db }]
-          readinessProbe:
-            exec:
-              command: ['mongosh','--quiet','--eval','db.adminCommand("ping").ok']
-            initialDelaySeconds: 20
-            timeoutSeconds: 5
-            periodSeconds: 10
-            failureThreshold: 3
           resources:
             requests: { memory: '256Mi', cpu: '250m' }
             limits:   { memory: '512Mi', cpu: '500m' }
