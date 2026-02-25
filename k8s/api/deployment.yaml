@@ -23,6 +23,10 @@ spec:
           image: kitchen-api:local
           imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 3000 }]
+          volumeMounts:
+            - name: api-server-override
+              mountPath: /app/server.js
+              subPath: server.js
           envFrom: [{ configMapRef: { name: api-config } }]
           env:
             - name: MONGO_URI
@@ -36,6 +40,13 @@ spec:
             requests: { memory: '128Mi', cpu: '100m' }
             limits: { memory: '256Mi', cpu: '500m' }
           securityContext: { runAsNonRoot: true, runAsUser: 1001 }
+      volumes:
+        - name: api-server-override
+          configMap:
+            name: api-server-override
+            items:
+              - key: server.js
+                path: server.js
 ---
 apiVersion: v1
 kind: Service

@@ -47,34 +47,57 @@ function startOrderStatusWorker() {
   orderStatusWorkerStarted = true;
 
   const interval = setInterval(async () => {
-    if (!ordersCollection) return;
-    const now = new Date();
+    try {
+      if (!ordersCollection) return;
+      const now = new Date();
 
-    const due = await ordersCollection
-      .find({ nextStatusAt: { $lte: now }, nextStatus: { $type: 'string' } })
-      .limit(25)
-      .toArray();
+      // Backfill schedule for existing orders created before simulation existed.
+      const unscheduled = await ordersCollection
+        .find({
+          status: { $in: Object.keys(ORDER_STATUS_FLOW) },
+          $or: [{ nextStatus: { $exists: false } }, { nextStatusAt: { $exists: false } }],
+        })
+        .limit(25)
+        .toArray();
 
-    for (const order of due) {
-      const newStatus = order?.nextStatus;
-      const oldNextStatusAt = order?.nextStatusAt;
-      if (!newStatus || !oldNextStatusAt) continue;
-
-      const next = ORDER_STATUS_FLOW[newStatus];
-      const update = {
-        $set: { status: newStatus, statusUpdatedAt: now },
-        $unset: { nextStatus: '', nextStatusAt: '' },
-      };
-
-      if (next) {
-        update.$set.nextStatus = next.next;
-        update.$set.nextStatusAt = new Date(now.getTime() + next.afterMs);
+      for (const order of unscheduled) {
+        const flow = ORDER_STATUS_FLOW[order?.status];
+        if (!flow) continue;
+        await ordersCollection.updateOne(
+          { _id: order._id, status: order.status, nextStatus: { $exists: false } },
+          { $set: { nextStatus: flow.next, nextStatusAt: new Date(now.getTime() + flow.afterMs) } }
+        );
       }
 
-      await ordersCollection.updateOne(
-        { _id: order._id, nextStatus: newStatus, nextStatusAt: oldNextStatusAt },
-        update
-      );
+      const due = await ordersCollection
+        .find({ nextStatusAt: { $lte: now }, nextStatus: { $type: 'string' } })
+        .limit(25)
+        .toArray();
+
+      for (const order of due) {
+        const newStatus = order?.nextStatus;
+        const oldNextStatusAt = order?.nextStatusAt;
+        if (!newStatus || !oldNextStatusAt) continue;
+
+        const next = ORDER_STATUS_FLOW[newStatus];
+        const update = next
+          ? {
+              $set: {
+                status: newStatus,
+                statusUpdatedAt: now,
+                nextStatus: next.next,
+                nextStatusAt: new Date(now.getTime() + next.afterMs),
+              },
+            }
+          : {
+              $set: { status: newStatus, statusUpdatedAt: now },
+              $unset: { nextStatus: '', nextStatusAt: '' },
+            };
+
+        await ordersCollection.updateOne({ _id: order._id }, update);
+      }
+    } catch (error) {
+      console.error('Order simulation worker error:', error.message);
     }
   }, 1000);
 

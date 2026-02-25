@@ -25,6 +25,12 @@ kubectl create configmap api-config \
   --namespace "$NAMESPACE" \
   --dry-run=client -o yaml | kubectl apply -f -
 
+echo "==> Creating/updating API server override (api-server-override)"
+kubectl create configmap api-server-override \
+  --from-file=server.js=api/server.js \
+  --namespace "$NAMESPACE" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 echo "==> Deploying MongoDB"
 kubectl apply -f k8s/db/statefulset.yaml
 kubectl rollout status statefulset/mongodb -n "$NAMESPACE" --timeout=180s
