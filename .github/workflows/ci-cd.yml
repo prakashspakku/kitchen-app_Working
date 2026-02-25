@@ -92,22 +92,31 @@ jobs:
           path: /tmp/
       - run: docker load < /tmp/kitchen-api.tar && docker load < /tmp/kitchen-web.tar
 
+      - name: Write Kind config
+        run: |
+          cat > kind-config.yaml <<'EOF'
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraPortMappings:
+                - containerPort: 30000
+                  hostPort: 30000
+                - containerPort: 30080
+                  hostPort: 30080
+                - containerPort: 30090
+                  hostPort: 30090
+                - containerPort: 30300
+                  hostPort: 30300
+            - role: worker
+            - role: worker
+          EOF
+
       - name: Create 3-node Kind cluster
         uses: helm/kind-action@v1.8.0
         with:
           cluster_name: kitchen-cluster
-          config: |
-            kind: Cluster
-            apiVersion: kind.x-k8s.io/v1alpha4
-            nodes:
-              - role: control-plane
-                extraPortMappings:
-                  - { containerPort: 30000, hostPort: 30000 }
-                  - { containerPort: 30080, hostPort: 30080 }
-                  - { containerPort: 30090, hostPort: 30090 }
-                  - { containerPort: 30300, hostPort: 30300 }
-              - role: worker
-              - role: worker
+          config: kind-config.yaml
 
       - run: kubectl wait --for=condition=Ready nodes --all --timeout=120s && kubectl get nodes
 
@@ -118,6 +127,10 @@ jobs:
 
       - run: kubectl apply -f k8s/namespace.yaml
       - run: |
+          kubectl create configmap api-config \
+            --from-literal=PORT=3000 \
+            --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+      - run: |
           kubectl create secret generic mongodb-secret \
             --from-literal=mongo-root-username=admin \
             --from-literal=mongo-root-password=Secret123! \
@@ -127,7 +140,14 @@ jobs:
       - run: kubectl apply -f k8s/db/statefulset.yaml && kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=150s
       - run: kubectl apply -f k8s/api/deployment.yaml && kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=120s
       - run: kubectl apply -f k8s/web-ui/deployment.yaml && kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=60s
-      - run: kubectl apply -f k8s/monitoring/prometheus-config.yaml && kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+      - name: Deploy monitoring (optional)
+        run: |
+          if [[ -s k8s/monitoring/prometheus-config.yaml && -s k8s/monitoring/grafana-deployment.yaml ]]; then
+            kubectl apply -f k8s/monitoring/prometheus-config.yaml
+            kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+          else
+            echo "Skipping monitoring deploy (manifests are empty)."
+          fi
       - run: kubectl get pods -n kitchen-app -o wide && kubectl get svc -n kitchen-app
 
       - name: Smoke test — API health
