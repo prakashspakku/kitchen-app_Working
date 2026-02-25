@@ -208,6 +208,7 @@ data:
         refreshHealth();
         refreshOrders();
         setInterval(refreshHealth, 8000);
+        setInterval(refreshOrders, 5000);
       </script>
     </body>
     </html>

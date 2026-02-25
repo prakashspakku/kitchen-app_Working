@@ -30,6 +30,56 @@ const kitchenOrdersCreatedTotal = new client.Counter({
 });
 
 let ordersCollection = null;
+let orderStatusWorkerStarted = false;
+
+const ENABLE_ORDER_SIMULATION =
+  process.env.ENABLE_ORDER_SIMULATION !== 'false' && process.env.NODE_ENV !== 'test';
+
+const ORDER_STATUS_FLOW = {
+  pending: { next: 'preparing', afterMs: 5_000 },
+  preparing: { next: 'ready', afterMs: 5_000 },
+  ready: { next: 'served', afterMs: 5_000 },
+};
+
+function startOrderStatusWorker() {
+  if (!ENABLE_ORDER_SIMULATION || orderStatusWorkerStarted) return;
+  if (!ordersCollection) return;
+  orderStatusWorkerStarted = true;
+
+  const interval = setInterval(async () => {
+    if (!ordersCollection) return;
+    const now = new Date();
+
+    const due = await ordersCollection
+      .find({ nextStatusAt: { $lte: now }, nextStatus: { $type: 'string' } })
+      .limit(25)
+      .toArray();
+
+    for (const order of due) {
+      const newStatus = order?.nextStatus;
+      const oldNextStatusAt = order?.nextStatusAt;
+      if (!newStatus || !oldNextStatusAt) continue;
+
+      const next = ORDER_STATUS_FLOW[newStatus];
+      const update = {
+        $set: { status: newStatus, statusUpdatedAt: now },
+        $unset: { nextStatus: '', nextStatusAt: '' },
+      };
+
+      if (next) {
+        update.$set.nextStatus = next.next;
+        update.$set.nextStatusAt = new Date(now.getTime() + next.afterMs);
+      }
+
+      await ordersCollection.updateOne(
+        { _id: order._id, nextStatus: newStatus, nextStatusAt: oldNextStatusAt },
+        update
+      );
+    }
+  }, 1000);
+
+  if (typeof interval.unref === 'function') interval.unref();
+}
 
 function normalizeRoute(path) {
   if (path === '/metrics' || path === '/health' || path === '/ready') return path;
@@ -56,6 +106,7 @@ async function connectDb() {
   try {
     const mongo = await MongoClient.connect(uri);
     ordersCollection = mongo.db('kitchen').collection('orders');
+    startOrderStatusWorker();
     return true;
   } catch (err) {
     return false;
@@ -99,11 +150,19 @@ app.post('/orders', async (req, res) => {
     return res.status(400).json({ error: 'Missing dish' });
   }
   try {
+    const now = new Date();
     const doc = {
       dish,
       status: 'pending',
-      createdAt: new Date(),
+      createdAt: now,
+      statusUpdatedAt: now,
     };
+
+    if (ENABLE_ORDER_SIMULATION) {
+      doc.nextStatus = ORDER_STATUS_FLOW.pending.next;
+      doc.nextStatusAt = new Date(now.getTime() + ORDER_STATUS_FLOW.pending.afterMs);
+    }
+
     const result = await ordersCollection.insertOne(doc);
     kitchenOrdersCreatedTotal.inc();
     res.status(201).json({ _id: result.insertedId, ...doc });
