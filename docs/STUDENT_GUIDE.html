@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen App - Student Guide (Build From Scratch)</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0b1120;--surface:#111827;--surface2:#1a2332;--border:#1e2d40;--border2:#263347;
+      --text:#d6dfeb;--muted:#7d8ea6;--blue:#58a6ff;--green:#3fb950;--yellow:#e3b341;--red:#f78166;
+      --code:#0d1117;--navw:280px;--r:10px;--r2:6px;
+    }
+    html{scroll-behavior:smooth}
+    body{display:flex;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+    #side{position:fixed;top:0;left:0;width:var(--navw);height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--border)}
+    #side .h{padding:18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0d2137,#0f1c2e)}
+    #side .h h1{font-size:1.2rem;color:var(--blue)} #side .h p{font-size:.72rem;color:var(--muted);margin-top:4px}
+    #side nav{padding:10px 0 20px} #side nav a{display:block;padding:6px 18px;color:var(--muted);text-decoration:none;font-size:.8rem}
+    #side nav a.g{margin-top:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);font-size:.72rem;font-weight:700}
+    #side nav a:hover{background:var(--border);color:var(--text)}
+    #main{margin-left:var(--navw);width:calc(100% - var(--navw))}
+    #hero{padding:56px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0d2137,#0a1628 45%,#071020)}
+    #hero h2{font-size:2.1rem;color:#fff;line-height:1.2} #hero h2 span{color:var(--blue)}
+    #hero p{margin-top:8px;color:var(--muted);max-width:900px}
+    .phase{padding:44px 56px 26px;border-bottom:1px solid var(--border)}
+    .ph{display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:18px}
+    .ph .i{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,rgba(88,166,255,.2),rgba(88,166,255,.06));display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:800}
+    .ph h3{font-size:1.5rem;color:#fff;line-height:1.2}.ph p{font-size:.85rem;color:var(--muted);margin-top:4px}
+    .s{margin-top:22px}.s h4{font-size:1.03rem;color:#e2e8f0;border-bottom:1px solid var(--border);padding-bottom:7px;margin-bottom:11px}
+    .s h5{font-size:.9rem;margin:14px 0 8px}
+    p{margin-bottom:10px} ul,ol{margin:8px 0 12px 22px} li{margin-bottom:4px}
+    table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:.84rem}
+    th,td{border:1px solid var(--border2);padding:8px 10px;vertical-align:top;text-align:left}
+    th{background:var(--surface2)} td{background:rgba(255,255,255,.02)}
+    pre{background:var(--code);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 14px;overflow:auto;margin:10px 0 14px;font-size:.81rem;line-height:1.58}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
+    p code,li code,td code{background:var(--code);border:1px solid var(--border2);border-radius:4px;padding:1px 5px}
+    .c{border-radius:var(--r2);padding:10px 12px;margin:10px 0;font-size:.83rem}
+    .info{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25)}
+    .warn{background:rgba(227,179,65,.08);border:1px solid rgba(227,179,65,.28)}
+    .bad{background:rgba(247,129,102,.08);border:1px solid rgba(247,129,102,.3)}
+    .ok{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.28)}
+    .code-meta{
+      border:1px solid var(--border2);
+      border-left:3px solid var(--blue);
+      border-radius:var(--r2);
+      background:rgba(88,166,255,.06);
+      padding:9px 11px;
+      margin:8px 0 6px;
+      font-size:.8rem;
+      line-height:1.45;
+      color:var(--text);
+    }
+    .code-meta .k{font-weight:700;color:#fff}
+    .code-wrap{position:relative}
+    .copy-btn{
+      position:absolute;
+      top:8px;
+      right:8px;
+      border:1px solid var(--border2);
+      background:var(--surface2);
+      color:var(--muted);
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:.72rem;
+      cursor:pointer;
+      z-index:2;
+    }
+    .copy-btn:hover{color:#fff;border-color:rgba(88,166,255,.5);background:rgba(88,166,255,.2)}
+    .tabs{margin:10px 0}.tb{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+    .btn{border:1px solid var(--border2);background:var(--surface2);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:.76rem;cursor:pointer}
+    .btn.active{background:rgba(88,166,255,.2);border-color:rgba(88,166,255,.5);color:#fff}
+    .panel{display:none}.panel.active{display:block}
+    @media (max-width:980px){#side{display:none}#main{margin-left:0;width:100%}#hero,.phase{padding-left:22px;padding-right:22px}}
+  </style>
+</head>
+<body>
+  <aside id="side">
+    <div class="h">
+      <h1>Kitchen App</h1>
+      <p>Build-from-scratch Student Guide</p>
+    </div>
+    <nav>
+      <a href="#goal">Goal</a>
+      <a class="g" href="#phase0">Phase 0</a>
+      <a class="g" href="#phase1">Phase 1</a>
+      <a class="g" href="#phase2">Phase 2</a>
+      <a class="g" href="#phase3">Phase 3</a>
+      <a class="g" href="#phase4">Phase 4</a>
+      <a class="g" href="#phase5">Phase 5</a>
+      <a class="g" href="#phase6">Phase 6</a>
+      <a class="g" href="#phase7">Phase 7</a>
+      <a class="g" href="#final">Final Checks</a>
+    </nav>
+  </aside>
+
+  <main id="main">
+    <section id="hero">
+      <h2 id="goal">Kitchen Orders App - <span>Zero to End-to-End</span></h2>
+      <p>
+        This guide is designed to be followed blindly: you create files phase-by-phase, run checks after every phase, and only move forward when the gate passes.
+        Every phase includes: what we add, why we add it, commands (Windows/macOS/Linux), failure causes, and important notes.
+      </p>
+      <div class="c warn">Rule: Do not continue to next phase unless current phase verification passes.</div>
+    </section>
+
+    <section class="phase" id="phase0">
+      <div class="ph"><div class="i">0</div><div><h3>Phase 0 - Prerequisites and Folder Bootstrap</h3><p>Goal: avoid configuration issues before writing code.</p></div></div>
+      <div class="s">
+        <h4>What we do</h4>
+        <ul>
+          <li>Verify required tools and versions.</li>
+          <li>Create project folder structure.</li>
+        </ul>
+        <h4>Commands</h4>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="p0" data-t="win">Windows</button>
+            <button class="btn" data-g="p0" data-t="mac">macOS</button>
+            <button class="btn" data-g="p0" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="p0" data-t="win"><pre>git --version
+node --version
+npm --version
+docker --version
+docker compose version
+kubectl version --client
+
+mkdir api,web-ui,k8s,k8s\api,k8s\db,k8s\web-ui,k8s\monitoring,scripts,docs
+ni api\server.js,api\package.json,api\server.test.js,api\.eslintrc.json,api\Dockerfile
+ni web-ui\index.html,web-ui\nginx.conf,web-ui\Dockerfile
+ni docker-compose.yml
+ni k8s\namespace.yaml,k8s\api\deployment.yaml,k8s\db\statefulset.yaml,k8s\web-ui\deployment.yaml
+ni k8s\monitoring\prometheus-config.yaml,k8s\monitoring\grafana-deployment.yaml,k8s\monitoring\grafana-dashboard.yaml
+ni scripts\local-setup.sh,scripts\teardown.sh</pre></div>
+          <div class="panel" data-g="p0" data-t="mac"><pre>git --version
+node --version
+npm --version
+docker --version
+docker compose version
+kubectl version --client
+
+mkdir -p api web-ui k8s/api k8s/db k8s/web-ui k8s/monitoring scripts docs
+touch api/server.js api/package.json api/server.test.js api/.eslintrc.json api/Dockerfile
+touch web-ui/index.html web-ui/nginx.conf web-ui/Dockerfile
+touch docker-compose.yml
+touch k8s/namespace.yaml k8s/api/deployment.yaml k8s/db/statefulset.yaml k8s/web-ui/deployment.yaml
+touch k8s/monitoring/prometheus-config.yaml k8s/monitoring/grafana-deployment.yaml k8s/monitoring/grafana-dashboard.yaml
+touch scripts/local-setup.sh scripts/teardown.sh</pre></div>
+          <div class="panel" data-g="p0" data-t="linux"><pre>git --version
+node --version
+npm --version
+docker --version
+docker compose version
+kubectl version --client
+
+mkdir -p api web-ui k8s/api k8s/db k8s/web-ui k8s/monitoring scripts docs
+touch api/server.js api/package.json api/server.test.js api/.eslintrc.json api/Dockerfile
+touch web-ui/index.html web-ui/nginx.conf web-ui/Dockerfile
+touch docker-compose.yml
+touch k8s/namespace.yaml k8s/api/deployment.yaml k8s/db/statefulset.yaml k8s/web-ui/deployment.yaml
+touch k8s/monitoring/prometheus-config.yaml k8s/monitoring/grafana-deployment.yaml k8s/monitoring/grafana-dashboard.yaml
+touch scripts/local-setup.sh scripts/teardown.sh</pre></div>
+        </div>
+        <h4>Failure causes</h4>
+        <ul><li>Docker not running.</li><li>kubectl context unset.</li><li>PowerShell quoting issues if commands copied with bash syntax.</li></ul>
+        <div class="c info">Important: On PowerShell, use <code>curl.exe</code> for curl behavior.</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase1">
+      <div class="ph"><div class="i">1</div><div><h3>Phase 1 - API Core Code</h3><p>Goal: create a working API with health, orders, metrics, and simulation.</p></div></div>
+      <div class="s">
+        <h4>File 1: <code>api/package.json</code> (why + code)</h4>
+        <p>Why: defines runtime dependencies, test/lint scripts, and node version expectations.</p>
+<pre>{
+  "name": "kitchen-api",
+  "version": "1.0.0",
+  "description": "Kitchen API with orders, health, and Prometheus /metrics",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "jest", "lint": "eslint server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.21.0", "mongodb": "^6.10.0", "prom-client": "^15.1.0" },
+  "devDependencies": { "eslint": "^8.57.0", "jest": "^29.7.0", "supertest": "^7.0.0" }
+}</pre>
+
+        <h4>File 2: <code>api/.eslintrc.json</code></h4>
+<pre>{
+  "env": { "commonjs": true, "es2021": true, "node": true },
+  "extends": "eslint:recommended",
+  "parserOptions": { "ecmaVersion": 12 },
+  "rules": {}
+}</pre>
+
+        <h4>File 3: <code>api/server.js</code></h4>
+        <p>Why: main app behavior, DB connectivity, metrics instrumentation, and order simulation.</p>
+<pre>const express = require('express');
+const { MongoClient } = require('mongodb');
+const client = require('prom-client');
+
+const app = express();
+app.use(express.json());
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+const httpRequestsTotal = new client.Counter({ name: 'http_requests_total', help: 'Total number of HTTP requests', labelNames: ['method', 'route', 'status_code'], registers: [register] });
+const httpRequestDurationSeconds = new client.Histogram({ name: 'http_request_duration_seconds', help: 'HTTP request duration in seconds', labelNames: ['method', 'route', 'status_code'], buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5], registers: [register] });
+const kitchenOrdersCreatedTotal = new client.Counter({ name: 'kitchen_orders_created_total', help: 'Total number of kitchen orders created', registers: [register] });
+
+let ordersCollection = null;
+let orderStatusWorkerStarted = false;
+const ENABLE_ORDER_SIMULATION = process.env.ENABLE_ORDER_SIMULATION !== 'false' && process.env.NODE_ENV !== 'test';
+const ORDER_STATUS_FLOW = { pending: { next: 'preparing', afterMs: 5000 }, preparing: { next: 'ready', afterMs: 5000 }, ready: { next: 'served', afterMs: 5000 } };
+
+function startOrderStatusWorker() {
+  if (!ENABLE_ORDER_SIMULATION || orderStatusWorkerStarted || !ordersCollection) return;
+  orderStatusWorkerStarted = true;
+  const interval = setInterval(async () => {
+    try {
+      const now = new Date();
+      const unscheduled = await ordersCollection.find({ status: { $in: Object.keys(ORDER_STATUS_FLOW) }, $or: [{ nextStatus: { $exists: false } }, { nextStatusAt: { $exists: false } }] }).limit(25).toArray();
+      for (const order of unscheduled) {
+        const flow = ORDER_STATUS_FLOW[order?.status];
+        if (!flow) continue;
+        await ordersCollection.updateOne({ _id: order._id, status: order.status, nextStatus: { $exists: false } }, { $set: { nextStatus: flow.next, nextStatusAt: new Date(now.getTime() + flow.afterMs) } });
+      }
+      const due = await ordersCollection.find({ nextStatusAt: { $lte: now }, nextStatus: { $type: 'string' } }).limit(25).toArray();
+      for (const order of due) {
+        const newStatus = order?.nextStatus;
+        if (!newStatus) continue;
+        const next = ORDER_STATUS_FLOW[newStatus];
+        const update = next ? { $set: { status: newStatus, statusUpdatedAt: now, nextStatus: next.next, nextStatusAt: new Date(now.getTime() + next.afterMs) } } : { $set: { status: newStatus, statusUpdatedAt: now }, $unset: { nextStatus: '', nextStatusAt: '' } };
+        await ordersCollection.updateOne({ _id: order._id }, update);
+      }
+    } catch (e) { console.error('Order simulation worker error:', e.message); }
+  }, 1000);
+  if (typeof interval.unref === 'function') interval.unref();
+}
+
+function normalizeRoute(path) {
+  if (path === '/metrics' || path === '/health' || path === '/ready') return path;
+  if (path === '/orders' || path.startsWith('/orders')) return '/orders';
+  return path;
+}
+app.use((req, res, next) => {
+  const start = Date.now();
+  const route = normalizeRoute(req.route?.path || req.path);
+  res.on('finish', () => {
+    const status = String(res.statusCode);
+    const duration = (Date.now() - start) / 1000;
+    httpRequestsTotal.inc({ method: req.method, route, status_code: status });
+    httpRequestDurationSeconds.observe({ method: req.method, route, status_code: status }, duration);
+  });
+  next();
+});
+
+async function connectDb() {
+  const uri = process.env.MONGO_URI || 'mongodb://localhost:27017';
+  try { const mongo = await MongoClient.connect(uri); ordersCollection = mongo.db('kitchen').collection('orders'); startOrderStatusWorker(); return true; }
+  catch { return false; }
+}
+
+app.get('/health', (req, res) => res.json({ status: 'ok', db: ordersCollection ? 'connected' : 'disconnected' }));
+app.get('/ready', (req, res) => res.status(200).send('OK'));
+app.get('/metrics', async (req, res) => { res.set('Content-Type', register.contentType); res.end(await register.metrics()); });
+app.get('/orders', async (req, res) => { if (!ordersCollection) return res.status(503).json({ error: 'Database not connected' }); const orders = await ordersCollection.find({}).toArray(); res.json(orders); });
+app.post('/orders', async (req, res) => {
+  if (!ordersCollection) return res.status(503).json({ error: 'Database not connected' });
+  const dish = req.body?.dish; if (!dish) return res.status(400).json({ error: 'Missing dish' });
+  const now = new Date(); const doc = { dish, status: 'pending', createdAt: now, statusUpdatedAt: now };
+  if (ENABLE_ORDER_SIMULATION) { doc.nextStatus = ORDER_STATUS_FLOW.pending.next; doc.nextStatusAt = new Date(now.getTime() + ORDER_STATUS_FLOW.pending.afterMs); }
+  const result = await ordersCollection.insertOne(doc); kitchenOrdersCreatedTotal.inc(); res.status(201).json({ _id: result.insertedId, ...doc });
+});
+
+const PORT = Number(process.env.PORT) || 3000;
+async function start() { await connectDb(); app.listen(PORT, () => console.log(`Kitchen API listening on port ${PORT}`)); }
+if (require.main === module) start().catch(console.error);
+module.exports = app; module.exports.connectDb = connectDb;</pre>
+
+        <h4>File 4: <code>api/server.test.js</code></h4>
+<pre>const request = require('supertest');
+jest.mock('mongodb', () => {
+  const orders = [];
+  return { MongoClient: { connect: jest.fn(() => Promise.resolve({ db: () => ({ collection: () => ({ find: () => ({ toArray: () => Promise.resolve(orders) }), insertOne: (doc) => { const inserted = { _id: 'mocked-id', ...doc }; orders.push(inserted); return Promise.resolve({ insertedId: inserted._id }); } }) }) })) } };
+});
+const app = require('./server');
+beforeAll(async () => { await app.connectDb(); });
+test('GET /health', async () => { const r = await request(app).get('/health'); expect(r.status).toBe(200); });
+test('GET /metrics includes request counter', async () => { const r = await request(app).get('/metrics'); expect(r.text).toMatch(/http_requests_total/); });
+test('POST /orders', async () => { const r = await request(app).post('/orders').send({ dish: 'Test Dish' }); expect(r.status).toBe(201); });
+test('GET /orders returns array', async () => { const r = await request(app).get('/orders'); expect(Array.isArray(r.body)).toBe(true); });</pre>
+
+        <h4>Phase verification gate</h4>
+<pre>cd api
+npm ci
+npm run lint
+npm test</pre>
+        <div class="c ok">Gate passes only if lint + tests both pass.</div>
+        <div class="c bad">Common failure: syntax errors from copy/paste in <code>server.js</code>. Fix first, do not continue.</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase2">
+      <div class="ph"><div class="i">2</div><div><h3>Phase 2 - Containerization and Local Run</h3><p>Goal: app runs seamlessly before Kubernetes and CI/CD.</p></div></div>
+      <div class="s">
+        <h4>Files to add</h4>
+        <h5><code>api/Dockerfile</code></h5>
+<pre>FROM node:20-alpine AS builder
+WORKDIR /build
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
+COPY . .
+RUN npm run lint
+
+FROM node:20-alpine AS production
+RUN addgroup -g 1001 -S nodejs && adduser -S nodeuser -u 1001 -G nodejs
+WORKDIR /app
+COPY --from=builder --chown=nodeuser:nodejs /build/node_modules ./node_modules
+COPY --chown=nodeuser:nodejs server.js package.json ./
+USER nodeuser
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD node -e "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+CMD ["node", "server.js"]</pre>
+
+        <h5><code>web-ui/nginx.conf</code></h5>
+<pre>server {
+  listen 80;
+  root /usr/share/nginx/html;
+  index index.html;
+  location /api/ {
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_pass http://api:3000/;
+  }
+  location /health { access_log off; default_type text/plain; return 200 'OK'; }
+  location / { try_files $uri $uri/ /index.html; }
+}</pre>
+
+        <h5><code>web-ui/index.html</code> (production UI)</h5>
+<pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Kitchen Orders&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Kitchen Orders&lt;/h1&gt;
+  &lt;p&gt;Create orders and track status changes automatically.&lt;/p&gt;
+  &lt;input id="dish" placeholder="Dish name (e.g. Masala Dosa)" autocomplete="off" /&gt;
+  &lt;button id="createBtn"&gt;Create order&lt;/button&gt;
+  &lt;button id="refreshBtn"&gt;Refresh&lt;/button&gt;
+  &lt;pre id="ordersOut"&gt;Loading...&lt;/pre&gt;
+  &lt;script&gt;
+    const apiBase = '/api';
+    const out = document.getElementById('ordersOut');
+    async function refreshOrders() {
+      const r = await fetch(apiBase + '/orders');
+      const data = await r.json().catch(() =&gt; []);
+      out.textContent = JSON.stringify(data, null, 2);
+    }
+    async function createOrder() {
+      const dish = document.getElementById('dish').value.trim();
+      if (!dish) return;
+      await fetch(apiBase + '/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dish })
+      });
+      document.getElementById('dish').value = '';
+      await refreshOrders();
+    }
+    document.getElementById('createBtn').addEventListener('click', createOrder);
+    document.getElementById('refreshBtn').addEventListener('click', refreshOrders);
+    refreshOrders();
+    setInterval(refreshOrders, 5000);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+        <div class="c info">If you want the richer dashboard-style UI, paste exact content from <code>web-ui/index.html</code> in this repository.</div>
+
+        <h5><code>web-ui/Dockerfile</code></h5>
+<pre>FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY index.html /usr/share/nginx/html/
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD wget -q -O /dev/null http://localhost:80/health || exit 1
+CMD ["nginx", "-g", "daemon off;"]</pre>
+
+        <h5><code>docker-compose.yml</code></h5>
+<pre>version: '3.9'
+services:
+  db:
+    image: mongo:7.0
+    container_name: kitchen-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: Secret123!
+    ports: ['27017:27017']
+    healthcheck:
+      test: ['CMD','mongosh','--quiet','--eval','db.adminCommand("ping").ok']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  api:
+    build: { context: ./api, target: production }
+    image: kitchen-api:local
+    environment:
+      MONGO_URI: 'mongodb://admin:Secret123!@db:27017/kitchendb?authSource=admin'
+      PORT: '3000'
+    ports: ['3000:3000']
+    depends_on: { db: { condition: service_healthy } }
+  web-ui:
+    build: { context: ./web-ui }
+    image: kitchen-web:local
+    ports: ['8080:80']
+    depends_on: { api: { condition: service_healthy } }</pre>
+
+        <h4>Commands and gate</h4>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="p2cmd" data-t="win">Windows</button>
+            <button class="btn" data-g="p2cmd" data-t="mac">macOS</button>
+            <button class="btn" data-g="p2cmd" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="p2cmd" data-t="win"><pre>docker compose build
+docker compose up -d
+docker compose ps
+curl.exe http://localhost:3000/health
+curl.exe http://localhost:3000/metrics
+curl.exe -X POST http://localhost:3000/orders -H "Content-Type: application/json" -d "{\"dish\":\"Masala Dosa\"}"
+curl.exe http://localhost:8080</pre></div>
+          <div class="panel" data-g="p2cmd" data-t="mac"><pre>docker compose build
+docker compose up -d
+docker compose ps
+curl http://localhost:3000/health
+curl http://localhost:3000/metrics
+curl -X POST http://localhost:3000/orders -H "Content-Type: application/json" -d '{"dish":"Masala Dosa"}'
+open http://localhost:8080</pre></div>
+          <div class="panel" data-g="p2cmd" data-t="linux"><pre>docker compose build
+docker compose up -d
+docker compose ps
+curl http://localhost:3000/health
+curl http://localhost:3000/metrics
+curl -X POST http://localhost:3000/orders -H "Content-Type: application/json" -d '{"dish":"Masala Dosa"}'
+xdg-open http://localhost:8080</pre></div>
+        </div>
+        <div class="c ok">Do not proceed until local Docker run works (API + UI + metrics).</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase3">
+      <div class="ph"><div class="i">3</div><div><h3>Phase 3 - Kubernetes Core Manifests</h3><p>Goal: prepare namespace, DB, API, and UI manifests with safe ordering.</p></div></div>
+      <div class="s">
+        <h4>Files</h4>
+        <h5><code>k8s/namespace.yaml</code></h5><pre>apiVersion: v1
+kind: Namespace
+metadata: { name: kitchen-app }</pre>
+
+        <h5><code>k8s/db/statefulset.yaml</code></h5><pre>apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: mongodb, namespace: kitchen-app }
+spec:
+  serviceName: "mongodb-service"
+  replicas: 1
+  selector: { matchLabels: { app: mongodb } }
+  template:
+    metadata: { labels: { app: mongodb } }
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports: [{ containerPort: 27017 }]
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-root-username } }
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-root-password } }
+          volumeMounts: [{ name: mongo-storage, mountPath: /data/db }]
+  volumeClaimTemplates:
+    - metadata: { name: mongo-storage }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard
+        resources: { requests: { storage: 2Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: mongodb-service, namespace: kitchen-app }
+spec:
+  clusterIP: None
+  selector: { app: mongodb }
+  ports: [{ port: 27017, targetPort: 27017 }]</pre>
+
+        <h5><code>k8s/api/deployment.yaml</code> (production)</h5><pre>apiVersion: apps/v1
+kind: Deployment
+metadata: { name: api-deployment, namespace: kitchen-app }
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector: { matchLabels: { app: kitchen-api } }
+  template:
+    metadata:
+      labels: { app: kitchen-api }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: kitchen-api
+          image: kitchen-api:local
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 3000 }]
+          volumeMounts:
+            - name: api-server-override
+              mountPath: /app/server.js
+              subPath: server.js
+          envFrom: [{ configMapRef: { name: api-config } }]
+          env:
+            - name: MONGO_URI
+              valueFrom: { secretKeyRef: { name: mongodb-secret, key: mongo-uri } }
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests: { memory: '128Mi', cpu: '100m' }
+            limits: { memory: '256Mi', cpu: '500m' }
+          securityContext: { runAsNonRoot: true, runAsUser: 1001 }
+      volumes:
+        - name: api-server-override
+          configMap:
+            name: api-server-override
+            items:
+              - key: server.js
+                path: server.js
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api-nodeport, namespace: kitchen-app }
+spec:
+  type: NodePort
+  selector: { app: kitchen-api }
+  ports: [{ port: 3000, targetPort: 3000, nodePort: 30000 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: api, namespace: kitchen-app }
+spec:
+  type: ClusterIP
+  selector: { app: kitchen-api }
+  ports: [{ port: 3000, targetPort: 3000 }]</pre>
+
+        <h5><code>k8s/web-ui/deployment.yaml</code> (production configmap-mounted UI, full inline)</h5><pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-ui-config
+  namespace: kitchen-app
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Same-origin API proxy (works in Docker Compose + Kubernetes)
+        location /api/ {
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            proxy_pass http://api:3000/;
+        }
+
+        location /health {
+            access_log off;
+            default_type text/plain;
+            return 200 'OK';
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }
+  index.html: |
+    &lt;!DOCTYPE html&gt;
+    &lt;html lang="en"&gt;
+    &lt;head&gt;
+      &lt;meta charset="UTF-8"&gt;
+      &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+      &lt;title&gt;Kitchen Orders&lt;/title&gt;
+      &lt;style&gt;
+        :root { --bg:#0b1120; --card:#111827; --border:#263347; --text:#e5e7eb; --muted:#9ca3af; --blue:#58a6ff; --green:#3fb950; --red:#f78166; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 880px; margin: 0 auto; padding: 28px 16px; }
+        h1 { margin: 0 0 10px; font-size: 28px; }
+        .sub { color: var(--muted); margin: 0 0 18px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+        .row { display:flex; gap:10px; align-items:center; }
+        input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: #0d1117; color: var(--text); }
+        button { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(88,166,255,.15); color: var(--text); cursor:pointer; }
+        button:hover { background: rgba(88,166,255,.25); }
+        .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border); border-radius:999px; color: var(--muted); font-size: 12px; }
+        .ok { color: var(--green); }
+        .bad { color: var(--red); }
+        table { width:100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid rgba(38,51,71,.65); text-align: left; }
+        th { color: var(--muted); font-weight: 600; }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer { margin-top: 14px; color: var(--muted); font-size: 12px; }
+        @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+      &lt;/style&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+      &lt;h1&gt;Kitchen Orders&lt;/h1&gt;
+      &lt;p class="sub"&gt;Create orders and watch them show up in MongoDB. This UI calls the API through a same-origin proxy at &lt;code&gt;/api&lt;/code&gt;.&lt;/p&gt;
+
+      &lt;div class="grid"&gt;
+        &lt;div class="card"&gt;
+          &lt;div class="row" style="justify-content:space-between; margin-bottom:10px;"&gt;
+            &lt;div class="pill"&gt;API status: &lt;span id="apiStatus" class="bad"&gt;checking…&lt;/span&gt;&lt;/div&gt;
+            &lt;div class="row" style="gap:12px;"&gt;
+              &lt;a href="/api/metrics" target="_blank" rel="noreferrer"&gt;/metrics&lt;/a&gt;
+              &lt;a href="/api/health" target="_blank" rel="noreferrer"&gt;/health&lt;/a&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div class="row"&gt;
+            &lt;input id="dish" placeholder="Dish name (e.g. Masala Dosa)" autocomplete="off" /&gt;
+            &lt;button id="createBtn"&gt;Create order&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div class="footer" id="createMsg"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="card"&gt;
+          &lt;div class="row" style="justify-content:space-between; margin-bottom:10px;"&gt;
+            &lt;div class="pill"&gt;Orders: &lt;span id="orderCount"&gt;0&lt;/span&gt;&lt;/div&gt;
+            &lt;div class="row"&gt;
+              &lt;button id="refreshBtn"&gt;Refresh&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div style="overflow:auto;"&gt;
+            &lt;table&gt;
+              &lt;thead&gt;
+                &lt;tr&gt;
+                  &lt;th&gt;Dish&lt;/th&gt;
+                  &lt;th&gt;Status&lt;/th&gt;
+                  &lt;th&gt;Created&lt;/th&gt;
+                  &lt;th&gt;ID&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody id="ordersBody"&gt;
+                &lt;tr&gt;&lt;td colspan="4" style="color:var(--muted);"&gt;Loading…&lt;/td&gt;&lt;/tr&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+          &lt;div class="footer"&gt;Tip: keep this page open, then hit Prometheus/Grafana to see &lt;code&gt;http_requests_total&lt;/code&gt; increase.&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;script&gt;
+        const apiBase = '/api';
+        const el = (id) =&gt; document.getElementById(id);
+
+        function fmtDate(v) {
+          try {
+            const d = new Date(v);
+            if (Number.isNaN(d.getTime())) return '';
+            return d.toLocaleString();
+          } catch { return ''; }
+        }
+
+        async function apiGet(path) {
+          const r = await fetch(apiBase + path, { headers: { 'Accept': 'application/json' } });
+          return { r, data: await r.json().catch(() =&gt; null) };
+        }
+
+        async function refreshHealth() {
+          const s = el('apiStatus');
+          try {
+            const { r, data } = await apiGet('/health');
+            if (r.ok) {
+              s.textContent = data?.db ? `ok (db: ${data.db})` : 'ok';
+              s.className = 'ok';
+            } else {
+              s.textContent = `error (${r.status})`;
+              s.className = 'bad';
+            }
+          } catch (e) {
+            s.textContent = 'offline';
+            s.className = 'bad';
+          }
+        }
+
+        async function refreshOrders() {
+          const body = el('ordersBody');
+          body.innerHTML = '&lt;tr&gt;&lt;td colspan="4" style="color:var(--muted);"&gt;Loading…&lt;/td&gt;&lt;/tr&gt;';
+          try {
+            const { r, data } = await apiGet('/orders');
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const orders = Array.isArray(data) ? data : [];
+            el('orderCount').textContent = String(orders.length);
+
+            if (!orders.length) {
+              body.innerHTML = '&lt;tr&gt;&lt;td colspan="4" style="color:var(--muted);"&gt;No orders yet. Create one on the left.&lt;/td&gt;&lt;/tr&gt;';
+              return;
+            }
+
+            body.innerHTML = orders.slice().reverse().map(o =&gt; {
+              const id = (o &amp;&amp; (o._id?.toString ? o._id.toString() : o._id)) || '';
+              return `
+                &lt;tr&gt;
+                  &lt;td&gt;${(o?.dish || '')}&lt;/td&gt;
+                  &lt;td&gt;${(o?.status || '')}&lt;/td&gt;
+                  &lt;td&gt;${fmtDate(o?.createdAt)}&lt;/td&gt;
+                  &lt;td style="color:var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;"&gt;${id}&lt;/td&gt;
+                &lt;/tr&gt;
+              `;
+            }).join('');
+          } catch (e) {
+            el('orderCount').textContent = '—';
+            body.innerHTML = `&lt;tr&gt;&lt;td colspan="4" style="color:var(--red);"&gt;Failed to load orders. Is the API reachable at ${apiBase}/orders?&lt;/td&gt;&lt;/tr&gt;`;
+          }
+        }
+
+        async function createOrder() {
+          const msg = el('createMsg');
+          msg.textContent = '';
+          const dish = el('dish').value.trim();
+          if (!dish) {
+            msg.textContent = 'Enter a dish name first.';
+            return;
+          }
+          el('createBtn').disabled = true;
+          try {
+            const r = await fetch(apiBase + '/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dish })
+            });
+            const data = await r.json().catch(() =&gt; ({}));
+            if (!r.ok) throw new Error(data?.error || `HTTP ${r.status}`);
+            msg.textContent = `Created: ${data.dish} (${data.status})`;
+            el('dish').value = '';
+            await refreshOrders();
+            await refreshHealth();
+          } catch (e) {
+            msg.textContent = `Create failed: ${e.message || e}`;
+          } finally {
+            el('createBtn').disabled = false;
+          }
+        }
+
+        el('createBtn').addEventListener('click', createOrder);
+        el('refreshBtn').addEventListener('click', refreshOrders);
+        el('dish').addEventListener('keydown', (e) =&gt; { if (e.key === 'Enter') createOrder(); });
+
+        refreshHealth();
+        refreshOrders();
+        setInterval(refreshHealth, 8000);
+        setInterval(refreshOrders, 5000);
+      &lt;/script&gt;
+    &lt;/body&gt;
+    &lt;/html&gt;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: web-ui-deployment, namespace: kitchen-app }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: kitchen-web-ui } }
+  template:
+    metadata: { labels: { app: kitchen-web-ui } }
+    spec:
+      containers:
+        - name: kitchen-web-ui
+          image: nginx:alpine
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 80 }]
+          livenessProbe:  { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 10 }
+          readinessProbe: { httpGet: { path: /health, port: 80 }, initialDelaySeconds: 5 }
+          volumeMounts:
+            - name: web-ui-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+            - name: web-ui-config
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+          resources:
+            requests: { memory: '32Mi', cpu: '25m' }
+            limits:   { memory: '64Mi', cpu: '100m' }
+      volumes:
+        - name: web-ui-config
+          configMap:
+            name: web-ui-config
+---
+apiVersion: v1
+kind: Service
+metadata: { name: web-ui-service, namespace: kitchen-app }
+spec:
+  type: NodePort
+  selector: { app: kitchen-web-ui }
+  ports: [{ port: 80, targetPort: 80, nodePort: 30080 }]</pre>
+        <div class="c warn">Production mode uses <code>nginx:alpine</code> + ConfigMap mounted <code>nginx.conf</code> and <code>index.html</code>, not <code>kitchen-web:local</code> image.</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase4">
+      <div class="ph"><div class="i">4</div><div><h3>Phase 4 - Kubernetes Deployment Execution</h3><p>Goal: deploy in dependency-safe order and verify before CI/CD.</p></div></div>
+      <div class="s">
+        <h4>Terminal A (apply order)</h4>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="p4apply" data-t="win">Windows</button>
+            <button class="btn" data-g="p4apply" data-t="mac">macOS</button>
+            <button class="btn" data-g="p4apply" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="p4apply" data-t="win"><pre>kubectl apply -f k8s/namespace.yaml
+
+kubectl create secret generic mongodb-secret --from-literal=mongo-root-username=admin --from-literal=mongo-root-password='Secret123!' --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-config --from-literal=PORT=3000 --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override --from-file=server.js=api/server.js --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl apply -f k8s/db/statefulset.yaml
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=180s
+kubectl apply -f k8s/api/deployment.yaml
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl apply -f k8s/web-ui/deployment.yaml
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre></div>
+          <div class="panel" data-g="p4apply" data-t="mac"><pre>kubectl apply -f k8s/namespace.yaml
+
+kubectl create secret generic mongodb-secret \
+  --from-literal=mongo-root-username=admin \
+  --from-literal=mongo-root-password='Secret123!' \
+  --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-config \
+  --from-literal=PORT=3000 \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override \
+  --from-file=server.js=api/server.js \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl apply -f k8s/db/statefulset.yaml
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=180s
+kubectl apply -f k8s/api/deployment.yaml
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl apply -f k8s/web-ui/deployment.yaml
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre></div>
+          <div class="panel" data-g="p4apply" data-t="linux"><pre>kubectl apply -f k8s/namespace.yaml
+
+kubectl create secret generic mongodb-secret \
+  --from-literal=mongo-root-username=admin \
+  --from-literal=mongo-root-password='Secret123!' \
+  --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-config \
+  --from-literal=PORT=3000 \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override \
+  --from-file=server.js=api/server.js \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl apply -f k8s/db/statefulset.yaml
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=180s
+kubectl apply -f k8s/api/deployment.yaml
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl apply -f k8s/web-ui/deployment.yaml
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre></div>
+        </div>
+
+        <h4>Terminal B (watch)</h4><pre>kubectl get pods -n kitchen-app -o wide
+kubectl get svc -n kitchen-app</pre>
+
+        <h4>Terminal C/D (background access)</h4><pre>kubectl port-forward -n kitchen-app svc/api-nodeport 30000:3000
+kubectl port-forward -n kitchen-app svc/web-ui-service 30080:80</pre>
+        <div class="c warn"><strong>Personal Windows laptop note:</strong> keep each port-forward in a different terminal. If any terminal closes, that endpoint stops immediately.</div>
+
+        <h4>Gate checks (before CI/CD)</h4>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="p4gate" data-t="win">Windows</button>
+            <button class="btn" data-g="p4gate" data-t="mac">macOS</button>
+            <button class="btn" data-g="p4gate" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="p4gate" data-t="win"><pre>curl.exe http://localhost:30000/health
+curl.exe http://localhost:30000/metrics
+curl.exe -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d "{\"dish\":\"Idly\"}"
+curl.exe http://localhost:30000/orders</pre></div>
+          <div class="panel" data-g="p4gate" data-t="mac"><pre>curl http://localhost:30000/health
+curl http://localhost:30000/metrics
+curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Idly"}'
+curl http://localhost:30000/orders</pre></div>
+          <div class="panel" data-g="p4gate" data-t="linux"><pre>curl http://localhost:30000/health
+curl http://localhost:30000/metrics
+curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Idly"}'
+curl http://localhost:30000/orders</pre></div>
+        </div>
+        <div class="c ok">If this gate fails, do not move to CI/CD.</div>
+        <div class="c bad">Common failure: missing secret/configmap -> <code>CreateContainerConfigError</code>.</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase5">
+      <div class="ph"><div class="i">5</div><div><h3>Phase 5 - CI/CD Workflow File</h3><p>Goal: automate lint, test, image build, and full 3-node Kind E2E smoke checks.</p></div></div>
+      <div class="s">
+        <h4>File: <code>.github/workflows/ci-cd.yml</code> (production-level E2E)</h4>
+<pre>name: Kitchen App CI/CD — 3-Node Kind Cluster
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+jobs:
+  matrix-test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "${{ matrix.node-version }}"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+        working-directory: api
+      - run: npm run lint
+        working-directory: api
+      - run: npm test
+        working-directory: api
+        env:
+          NODE_ENV: test
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-node-${{ matrix.node-version }}
+          path: api/coverage/
+          retention-days: 7
+  build-push:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: matrix-test
+    outputs:
+      image-tag: ${{ steps.tag.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "value=sha-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          target: production
+          push: false
+          tags: kitchen-api:local
+          outputs: type=docker,dest=/tmp/kitchen-api.tar
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./web-ui
+          push: false
+          tags: kitchen-web:local
+          outputs: type=docker,dest=/tmp/kitchen-web.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp/*.tar
+          retention-days: 1
+  e2e-k8s:
+    name: E2E — 3-Node Kind Cluster
+    runs-on: ubuntu-latest
+    needs: build-push
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp/
+      - run: docker load &lt; /tmp/kitchen-api.tar &amp;&amp; docker load &lt; /tmp/kitchen-web.tar
+      - name: Write Kind config
+        run: |
+          cat > kind-config.yaml &lt;&lt;'EOF'
+          kind: Cluster
+          apiVersion: kind.x-k8s.io/v1alpha4
+          nodes:
+            - role: control-plane
+              extraPortMappings:
+                - containerPort: 30000
+                  hostPort: 30000
+                - containerPort: 30080
+                  hostPort: 30080
+                - containerPort: 30090
+                  hostPort: 30090
+                - containerPort: 30300
+                  hostPort: 30300
+            - role: worker
+            - role: worker
+          EOF
+      - name: Create 3-node Kind cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kitchen-cluster
+          config: kind-config.yaml
+      - run: kubectl wait --for=condition=Ready nodes --all --timeout=120s && kubectl get nodes
+      - name: Load images into Kind cluster nodes
+        run: |
+          kind load docker-image kitchen-api:local --name kitchen-cluster
+          kind load docker-image kitchen-web:local --name kitchen-cluster
+      - run: kubectl apply -f k8s/namespace.yaml
+      - run: |
+          kubectl create configmap api-config --from-literal=PORT=3000 --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create configmap api-server-override --from-file=server.js=api/server.js --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic mongodb-secret --from-literal=mongo-root-username=admin --from-literal=mongo-root-password=Secret123! --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+      - run: kubectl apply -f k8s/db/statefulset.yaml &amp;&amp; kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=150s
+      - run: kubectl apply -f k8s/api/deployment.yaml &amp;&amp; kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+      - run: kubectl apply -f k8s/web-ui/deployment.yaml &amp;&amp; kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=60s
+      - name: Deploy monitoring (optional)
+        run: |
+          if [[ -s k8s/monitoring/prometheus-config.yaml && -s k8s/monitoring/grafana-deployment.yaml ]]; then
+            kubectl apply -f k8s/monitoring/prometheus-config.yaml
+            kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+          else
+            echo "Skipping monitoring deploy (manifests are empty)."
+          fi
+      - run: kubectl get pods -n kitchen-app -o wide && kubectl get svc -n kitchen-app
+      - name: Smoke test — API health
+        run: |
+          for i in $(seq 1 15); do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:30000/health)
+            [[ "$CODE" == "200" ]] && { echo "✅ API health OK"; break; }
+            echo "  Attempt $i: HTTP $CODE — retrying..."; sleep 5
+          done
+          [[ "$CODE" == "200" ]] || exit 1
+      - name: Smoke test — Create order, list orders, metrics, web UI
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:30000/health | grep -q 200
+          curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:30000/orders -H 'Content-Type: application/json' -d '{"dish":"CI Test Order"}' | grep -q 201
+          curl -s http://localhost:30000/metrics | grep -q 'http_requests_total'
+          curl -s -o /dev/null -w "%{http_code}" http://localhost:30080 | grep -q 200
+          echo "✅ All smoke tests passed"
+      - name: Final status
+        if: always()
+        run: |
+          kubectl get pods -n kitchen-app || true
+          kubectl get svc -n kitchen-app || true
+          kubectl get events -n kitchen-app --sort-by=.lastTimestamp | tail -15 || true
+      - name: Collect logs on failure
+        if: failure()
+        run: kubectl logs -n kitchen-app -l app=kitchen-api --tail=100 || true</pre>
+      </div>
+    </section>
+
+    <section class="phase" id="phase6">
+      <div class="ph"><div class="i">6</div><div><h3>Phase 6 - Monitoring</h3><p>Goal: add observability with Prometheus and Grafana dashboards.</p></div></div>
+      <div class="s">
+        <h4>File snippets to paste (production monitoring)</h4>
+        <h5><code>k8s/monitoring/prometheus-config.yaml</code></h5>
+<pre>apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-sa
+  namespace: kitchen-app
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-k8s-read
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/metrics", "services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-k8s-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-k8s-read
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-sa
+    namespace: kitchen-app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: kitchen-app
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+    scrape_configs:
+      - job_name: kitchen-api
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: ["kitchen-app"]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: ([^:]+)(?::\\d+)?;(\\d+)
+            replacement: $1:$2
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  namespace: kitchen-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus-sa
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.52.0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--web.enable-lifecycle"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/
+            - name: prometheus-data
+              mountPath: /prometheus
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: kitchen-app
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      port: 9090
+      targetPort: 9090
+      nodePort: 30090</pre>
+        <h5><code>k8s/monitoring/grafana-deployment.yaml</code></h5>
+<pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: kitchen-app
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-service:9090
+        isDefault: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+  namespace: kitchen-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.2.0
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: kitchenadmin
+          volumeMounts:
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboards
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: grafana-dashboard-files
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
+            items:
+              - key: dashboards.yaml
+                path: dashboards.yaml
+        - name: grafana-dashboard-files
+          configMap:
+            name: grafana-dashboards
+            items:
+              - key: kitchen-app-dashboard.json
+                path: kitchen-app-dashboard.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: kitchen-app
+spec:
+  type: NodePort
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      nodePort: 30300</pre>
+        <h5><code>k8s/monitoring/grafana-dashboard.yaml</code></h5>
+<pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: kitchen-app
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: "kitchen"
+        orgId: 1
+        folder: "Kitchen"
+        type: file
+        options:
+          path: /var/lib/grafana/dashboards
+  kitchen-app-dashboard.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Orders created (total)",
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            { "refId": "A", "expr": "kitchen_orders_created_total", "legendFormat": "total" }
+          ],
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" }
+        },
+        {
+          "type": "timeseries",
+          "title": "HTTP requests / sec (by route)",
+          "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (route) (rate(http_requests_total[1m]))",
+              "legendFormat": "{{route}}"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "5xx error rate (5m)",
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 6 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total[5m])), 1e-9)"
+            }
+          ],
+          "options": {
+            "reduceOptions": { "calcs": ["lastNotNull"] },
+            "unit": "percentunit"
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "p95 latency (seconds) by route",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket[5m])))",
+              "legendFormat": "{{route}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Orders created / sec (5m rate)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            { "refId": "A", "expr": "rate(kitchen_orders_created_total[5m])", "legendFormat": "orders/sec" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "API RSS memory (bytes)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            { "refId": "A", "expr": "process_resident_memory_bytes", "legendFormat": "rss" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "API CPU (seconds/sec)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+          "datasource": { "type": "prometheus", "uid": "$DS_PROMETHEUS" },
+          "targets": [
+            { "refId": "A", "expr": "rate(process_cpu_user_seconds_total[5m]) + rate(process_cpu_system_seconds_total[5m])", "legendFormat": "cpu" }
+          ]
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "style": "dark",
+      "tags": ["kitchen-app"],
+      "templating": {
+        "list": [
+          {
+            "name": "DS_PROMETHEUS",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": { "text": "Prometheus", "value": "Prometheus" }
+          }
+        ]
+      },
+      "time": { "from": "now-15m", "to": "now" },
+      "timepicker": {},
+      "timezone": "browser",
+      "title": "Kitchen App — Overview",
+      "version": 1
+    }</pre>
+
+        <h4>Apply commands</h4><pre>kubectl apply -f k8s/monitoring/prometheus-config.yaml
+kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+kubectl apply -f k8s/monitoring/grafana-dashboard.yaml
+kubectl rollout restart deployment/grafana-deployment -n kitchen-app</pre>
+        <div class="c info">These are production-level snippets. For full panel layout JSON, keep <code>k8s/monitoring/grafana-dashboard.yaml</code> as source of truth.</div>
+        <h4>Background terminals</h4><pre>kubectl port-forward -n kitchen-app svc/prometheus-service 30090:9090
+kubectl port-forward -n kitchen-app svc/grafana-service 30300:3000</pre>
+        <div class="c warn"><strong>Personal Windows laptop note:</strong> run Prometheus and Grafana port-forward in separate terminals and keep them open while using dashboards.</div>
+        <h4>Verification</h4>
+        <ul>
+          <li>Prometheus query <code>http_requests_total</code> returns samples.</li>
+          <li>Grafana login works (<code>admin / kitchenadmin</code>).</li>
+          <li>Dashboard "Kitchen App - Overview" loads.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="phase" id="phase7">
+      <div class="ph"><div class="i">7</div><div><h3>Phase 7 - Simulation Behavior</h3><p>Goal: verify business lifecycle and stability after deployment.</p></div></div>
+      <div class="s">
+        <h4>Commands</h4>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="p7cmd" data-t="win">Windows</button>
+            <button class="btn" data-g="p7cmd" data-t="mac">macOS</button>
+            <button class="btn" data-g="p7cmd" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="p7cmd" data-t="win"><pre>curl.exe -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d "{\"dish\":\"Final Demo\"}"
+curl.exe http://localhost:30000/orders</pre></div>
+          <div class="panel" data-g="p7cmd" data-t="mac"><pre>curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Final Demo"}'
+curl http://localhost:30000/orders</pre></div>
+          <div class="panel" data-g="p7cmd" data-t="linux"><pre>curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Final Demo"}'
+curl http://localhost:30000/orders</pre></div>
+        </div>
+        <p>Expected progression: <code>pending -> preparing -> ready -> served</code> every ~5 seconds.</p>
+        <div class="c warn">If status does not change: check API logs and confirm simulation is not disabled by env.</div>
+      </div>
+    </section>
+
+    <section class="phase" id="phase-ready-playbook">
+      <div class="ph"><div class="i">R</div><div><h3>Kubernetes 0/1 READY Troubleshooting Playbook</h3><p>Goal: recover quickly when pods stay at 0/1 READY using exact copy-paste commands.</p></div></div>
+      <div class="s">
+        <h4>Step 1 - Quick triage (always run first)</h4>
+        <pre>kubectl get pods -n kitchen-app -o wide
+kubectl get svc -n kitchen-app
+kubectl get events -n kitchen-app --sort-by=.lastTimestamp
+
+# Replace &lt;pod-name&gt; with actual failing pod
+kubectl describe pod &lt;pod-name&gt; -n kitchen-app
+kubectl logs &lt;pod-name&gt; -n kitchen-app --tail=200</pre>
+        <div class="c info">What to look for in describe/logs: <code>CreateContainerConfigError</code>, <code>ImagePullBackOff</code>, probe failures, DB connect errors.</div>
+
+        <h4>Symptom A - <code>CreateContainerConfigError</code> (most common)</h4>
+        <p>Cause: missing required ConfigMap/Secret. Fix by recreating all required config dependencies.</p>
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="ready-a" data-t="win">Windows</button>
+            <button class="btn" data-g="ready-a" data-t="mac">macOS</button>
+            <button class="btn" data-g="ready-a" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="ready-a" data-t="win"><pre>kubectl get configmap -n kitchen-app
+kubectl get secret -n kitchen-app
+
+kubectl create configmap api-config --from-literal=PORT=3000 --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override --from-file=server.js=api/server.js --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic mongodb-secret --from-literal=mongo-root-username=admin --from-literal=mongo-root-password=Secret123! --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl rollout restart deployment/api-deployment -n kitchen-app
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s</pre></div>
+          <div class="panel" data-g="ready-a" data-t="mac"><pre>kubectl get configmap -n kitchen-app
+kubectl get secret -n kitchen-app
+
+kubectl create configmap api-config \
+  --from-literal=PORT=3000 \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override \
+  --from-file=server.js=api/server.js \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic mongodb-secret \
+  --from-literal=mongo-root-username=admin \
+  --from-literal=mongo-root-password='Secret123!' \
+  --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl rollout restart deployment/api-deployment -n kitchen-app
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s</pre></div>
+          <div class="panel" data-g="ready-a" data-t="linux"><pre>kubectl get configmap -n kitchen-app
+kubectl get secret -n kitchen-app
+
+kubectl create configmap api-config \
+  --from-literal=PORT=3000 \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override \
+  --from-file=server.js=api/server.js \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic mongodb-secret \
+  --from-literal=mongo-root-username=admin \
+  --from-literal=mongo-root-password='Secret123!' \
+  --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' \
+  --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl rollout restart deployment/api-deployment -n kitchen-app
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s</pre></div>
+        </div>
+
+        <h4>Symptom B - <code>ImagePullBackOff</code> / <code>ErrImagePull</code> / <code>ErrImageNeverPull</code></h4>
+        <p>Cause: image unavailable on node or pull policy mismatch.</p>
+        <pre>kubectl describe pod &lt;pod-name&gt; -n kitchen-app
+kubectl get deployment api-deployment -n kitchen-app -o yaml
+kubectl get deployment web-ui-deployment -n kitchen-app -o yaml</pre>
+        <div class="c warn">Ensure images are built locally for local cluster and manifests use <code>imagePullPolicy: IfNotPresent</code>.</div>
+        <pre>docker compose build api web-ui
+kubectl rollout restart deployment/api-deployment -n kitchen-app
+kubectl rollout restart deployment/web-ui-deployment -n kitchen-app
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre>
+
+        <h4>Symptom C - Readiness/Liveness probe failed</h4>
+        <p>Cause: app started but endpoint/proxy/DB path not healthy yet.</p>
+        <pre>kubectl describe pod &lt;pod-name&gt; -n kitchen-app
+kubectl logs &lt;pod-name&gt; -n kitchen-app --tail=200
+kubectl get pods -n kitchen-app -o wide</pre>
+        <div class="c info">For API, verify <code>/health</code> responds and DB secret URI is correct. For web-ui, verify nginx config + mounted index.html are valid.</div>
+        <pre>kubectl rollout restart deployment/api-deployment -n kitchen-app
+kubectl rollout restart deployment/web-ui-deployment -n kitchen-app
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre>
+
+        <h4>Symptom D - MongoDB not ready / API cannot connect DB</h4>
+        <p>Cause: statefulset startup delay, secret mismatch, or storage issue.</p>
+        <pre>kubectl get statefulset -n kitchen-app
+kubectl get pods -n kitchen-app -l app=mongodb -o wide
+kubectl describe pod mongodb-0 -n kitchen-app
+kubectl logs mongodb-0 -n kitchen-app --tail=200
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=180s</pre>
+        <div class="c warn">Do not restart API repeatedly until MongoDB rollout status is successful.</div>
+
+        <h4>Symptom E - NodePort URL not loading on personal Windows laptop</h4>
+        <p>Cause: local Docker Desktop networking behavior. Use port-forward (recommended).</p>
+        <pre># Separate terminal 1
+kubectl port-forward -n kitchen-app svc/api-nodeport 30000:3000
+
+# Separate terminal 2
+kubectl port-forward -n kitchen-app svc/web-ui-service 30080:80
+
+# Separate terminal 3 (optional)
+kubectl port-forward -n kitchen-app svc/prometheus-service 30090:9090
+
+# Separate terminal 4 (optional)
+kubectl port-forward -n kitchen-app svc/grafana-service 30300:3000</pre>
+        <div class="c warn">Keep these terminals open while testing. Closing a terminal drops that endpoint instantly.</div>
+
+        <h4>Known-good full recovery sequence (safe rerun)</h4>
+        <pre>kubectl apply -f k8s/namespace.yaml
+kubectl create configmap api-config --from-literal=PORT=3000 --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create configmap api-server-override --from-file=server.js=api/server.js --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic mongodb-secret --from-literal=mongo-root-username=admin --from-literal=mongo-root-password=Secret123! --from-literal=mongo-uri='mongodb://admin:Secret123!@mongodb-service.kitchen-app.svc.cluster.local:27017/kitchendb?authSource=admin' --namespace kitchen-app --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f k8s/db/statefulset.yaml
+kubectl rollout status statefulset/mongodb -n kitchen-app --timeout=180s
+kubectl apply -f k8s/api/deployment.yaml
+kubectl rollout status deployment/api-deployment -n kitchen-app --timeout=180s
+kubectl apply -f k8s/web-ui/deployment.yaml
+kubectl rollout status deployment/web-ui-deployment -n kitchen-app --timeout=120s</pre>
+      </div>
+    </section>
+
+    <section class="phase" id="final">
+      <div class="ph"><div class="i">OK</div><div><h3>Final End-to-End Validation</h3><p>App should run seamlessly before and after deployment stage.</p></div></div>
+      <div class="s">
+        <div class="tabs">
+          <div class="tb">
+            <button class="btn active" data-g="pfinal" data-t="win">Windows</button>
+            <button class="btn" data-g="pfinal" data-t="mac">macOS</button>
+            <button class="btn" data-g="pfinal" data-t="linux">Linux</button>
+          </div>
+          <div class="panel active" data-g="pfinal" data-t="win"><pre># Before CI/CD (must pass locally)
+docker compose up -d
+curl.exe http://localhost:3000/health
+curl.exe http://localhost:3000/metrics
+docker compose down
+
+# After K8s deploy (must pass)
+kubectl get pods -n kitchen-app
+curl.exe http://localhost:30000/health
+curl.exe http://localhost:30000/metrics
+curl.exe -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d "{\"dish\":\"Checklist\"}"</pre></div>
+          <div class="panel" data-g="pfinal" data-t="mac"><pre># Before CI/CD (must pass locally)
+docker compose up -d
+curl http://localhost:3000/health
+curl http://localhost:3000/metrics
+docker compose down
+
+# After K8s deploy (must pass)
+kubectl get pods -n kitchen-app
+curl http://localhost:30000/health
+curl http://localhost:30000/metrics
+curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Checklist"}'</pre></div>
+          <div class="panel" data-g="pfinal" data-t="linux"><pre># Before CI/CD (must pass locally)
+docker compose up -d
+curl http://localhost:3000/health
+curl http://localhost:3000/metrics
+docker compose down
+
+# After K8s deploy (must pass)
+kubectl get pods -n kitchen-app
+curl http://localhost:30000/health
+curl http://localhost:30000/metrics
+curl -X POST http://localhost:30000/orders -H "Content-Type: application/json" -d '{"dish":"Checklist"}'</pre></div>
+        </div>
+        <div class="c ok">If all checks pass, you are ready to push and rely on CI/CD automation.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function activate(g,t){
+      document.querySelectorAll('.btn[data-g="'+g+'"]').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+      document.querySelectorAll('.panel[data-g="'+g+'"]').forEach(p=>p.classList.toggle('active',p.dataset.t===t));
+    }
+    document.querySelectorAll('.btn').forEach(btn=>btn.addEventListener('click',()=>activate(btn.dataset.g,btn.dataset.t)));
+
+    function nearestHeading(el){
+      let cur = el;
+      while (cur && cur !== document.body) {
+        let p = cur.previousElementSibling;
+        while (p) {
+          if (p.tagName === 'H5' || p.tagName === 'H4' || p.tagName === 'H3') {
+            return p.textContent.trim();
+          }
+          p = p.previousElementSibling;
+        }
+        cur = cur.parentElement;
+      }
+      return 'Current step command/code block';
+    }
+
+    function copyText(text){
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    }
+
+    function getContextualMeta(title, content){
+      const t = (title || '').toLowerCase();
+      const c = (content || '').toLowerCase();
+
+      if (t.includes('package.json')) {
+        return {
+          what: 'Defines Node dependencies, scripts, and engine constraints for the API module.',
+          why: 'Keeps installs reproducible and ensures lint/test/start commands are consistent across local and CI.',
+          how: 'Paste into api/package.json, run npm ci in api/, then verify with npm run lint and npm test.'
+        };
+      }
+      if (t.includes('server.js')) {
+        return {
+          what: 'Implements API endpoints, MongoDB connectivity, Prometheus metrics, and status simulation worker.',
+          why: 'This is the runtime core; all health, orders, metrics, and lifecycle behavior depend on this file.',
+          how: 'Paste exactly, then validate /health, /orders, and /metrics responses before continuing.'
+        };
+      }
+      if (t.includes('server.test.js') || c.includes('supertest')) {
+        return {
+          what: 'Defines API behavior tests using mocked MongoDB and HTTP assertions.',
+          why: 'Prevents regressions and catches endpoint/contract breaks before containerization and deployment.',
+          how: 'Paste the file, run npm test, and do not proceed unless tests pass.'
+        };
+      }
+      if (t.includes('dockerfile') || c.includes('from node:20-alpine') || c.includes('from nginx:alpine')) {
+        return {
+          what: 'Build instructions for runtime images used locally and in CI/K8s flows.',
+          why: 'Ensures identical runtime behavior between laptops, CI jobs, and cluster deployments.',
+          how: 'Paste file content, run docker compose build, and fix any lint/build failures immediately.'
+        };
+      }
+      if (t.includes('docker-compose') || c.includes('services:')) {
+        return {
+          what: 'Local 3-service orchestration for db, api, and web-ui with health-gated startup.',
+          why: 'Acts as your pre-deployment reliability gate before Kubernetes and CI/CD.',
+          how: 'Paste, run docker compose up -d, verify health/orders/metrics, then continue.'
+        };
+      }
+      if (t.includes('namespace') || c.includes('kind: namespace')) {
+        return {
+          what: 'Creates isolated Kubernetes namespace kitchen-app for all project resources.',
+          why: 'Avoids resource collisions and keeps cleanup/diagnostics scoped and predictable.',
+          how: 'Apply this manifest first before any secret/configmap/deployment resource.'
+        };
+      }
+      if (t.includes('statefulset') || c.includes('kind: statefulset') || c.includes('mongodb-service')) {
+        return {
+          what: 'Deploys MongoDB with persistent storage and stable networking.',
+          why: 'API orders endpoint depends on MongoDB availability and stable DNS/service identity.',
+          how: 'Apply and wait for rollout completion before deploying API.'
+        };
+      }
+      if (t.includes('api/deployment') || (c.includes('kind: deployment') && c.includes('kitchen-api'))) {
+        return {
+          what: 'Deploys API replicas, health probe, metrics scrape annotations, and internal/external services.',
+          why: 'Provides scalable and observable API runtime for web-ui, Prometheus, and smoke tests.',
+          how: 'Ensure required secret/configmaps exist first, then apply and wait for rollout status.'
+        };
+      }
+      if (t.includes('web-ui/deployment') || (c.includes('web-ui-config') && c.includes('nginx.conf'))) {
+        return {
+          what: 'Deploys web-ui via nginx ConfigMap mounts and exposes it through NodePort service.',
+          why: 'Guarantees UI content/proxy config updates without rebuilding custom UI images.',
+          how: 'Apply after API deployment and use port-forward if NodePort is unreliable on Windows.'
+        };
+      }
+      if (t.includes('ci-cd') || c.includes('kind-config.yaml') || c.includes('actions/checkout@v4')) {
+        return {
+          what: 'Automates test matrix, image build, cluster deploy, and E2E smoke checks in GitHub Actions.',
+          why: 'Enforces release quality and catches deployment regressions before merge/release.',
+          how: 'Paste workflow as-is, push to trigger, and inspect failing step logs if pipeline breaks.'
+        };
+      }
+      if (t.includes('prometheus') || c.includes('prometheus.yml') || c.includes('prometheus-sa')) {
+        return {
+          what: 'Configures metrics scraping, RBAC permissions, and Prometheus service exposure.',
+          why: 'Without this, metrics remain uncollected and Grafana panels cannot render live data.',
+          how: 'Apply manifest, port-forward service, and verify query http_requests_total returns data.'
+        };
+      }
+      if (t.includes('grafana') || c.includes('grafana-datasources') || c.includes('kitchen-app-dashboard')) {
+        return {
+          what: 'Provision Grafana datasource and dashboard definitions for kitchen app observability.',
+          why: 'Turns raw metrics into actionable visual signals (latency, errors, throughput, resources).',
+          how: 'Apply manifests, restart grafana deployment, login, and open Kitchen App dashboard.'
+        };
+      }
+      if (t.includes('commands') || t.includes('gate') || t.includes('final')) {
+        return {
+          what: 'Execution and verification commands for this phase.',
+          why: 'Confirms the phase outcome before you continue to the next dependency layer.',
+          how: 'Run in the listed terminal/OS variant; only continue when expected output is confirmed.'
+        };
+      }
+
+      return {
+        what: 'This block contains the exact code/commands for this step.',
+        why: 'Using this exact block avoids configuration drift and keeps your environment aligned with the project baseline.',
+        how: 'Copy this block as-is, paste into the target file/terminal, run it, then complete the verification gate before continuing.'
+      };
+    }
+
+    document.querySelectorAll('pre').forEach((pre, idx) => {
+      if (pre.dataset.enhanced === 'true') return;
+      pre.dataset.enhanced = 'true';
+
+      const title = nearestHeading(pre);
+      const metaText = getContextualMeta(title, pre.innerText || '');
+
+      const meta = document.createElement('div');
+      meta.className = 'code-meta';
+      meta.innerHTML =
+        '<span class="k">What:</span> ' + metaText.what + '<br>' +
+        '<span class="k">Why:</span> ' + metaText.why + '<br>' +
+        '<span class="k">How:</span> ' + metaText.how;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'code-wrap';
+      pre.parentNode.insertBefore(meta, pre);
+      pre.parentNode.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', () => {
+        copyText(pre.innerText).then(() => {
+          const old = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = old; }, 1200);
+        });
+      });
+      wrap.appendChild(btn);
+    });
+  </script>
+</body>
+</html>
