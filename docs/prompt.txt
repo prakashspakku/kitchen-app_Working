@@ -1,0 +1,109 @@
+Create a complete, production-ready `docs/STUDENT_GUIDE.html` for the `kitchen-app` project.
+
+Goal:
+- Build a zero-ambiguity, end-to-end student execution guide that a brand-new user can follow in Windows PowerShell, macOS, and Linux without guessing.
+- Include every minute step from folder setup through local run, Kubernetes deploy, monitoring, CI/CD, troubleshooting, and final validation.
+
+Hard requirements:
+1) Output file:
+- Create/update only: `docs/STUDENT_GUIDE.html`
+- Self-contained HTML (inline CSS + JS) with clean dark-theme formatting.
+- Add copy button for every code block.
+- Add OS tabs (Windows/macOS/Linux) for all command sections.
+
+2) Structure:
+- Phase 0: Prerequisites + folder bootstrap + Git bootstrap
+- Phase 1: API files
+- Phase 2: Docker/local compose
+- Phase 3: Kubernetes core manifests
+- Phase 4: Kubernetes execution + gate checks
+- Phase 5: CI/CD workflow
+- Phase 6: Monitoring (Prometheus + Grafana)
+- Phase 7: Simulation behavior
+- Kubernetes 0/1 READY troubleshooting playbook
+- Final end-to-end validation
+- Every phase must have: What, Why, How, Verify, Failure causes, Notes
+
+3) Must include exact practical fixes discovered in real run:
+- First install flow:
+  - For fresh repo: `npm install` first (creates lockfile), then lint/test
+  - Explain when `npm ci` is valid
+- PowerShell-safe JSON POST:
+  - Prefer `Invoke-RestMethod` for POST JSON
+  - Avoid fragile escaping examples
+- Remove deprecated Compose version key:
+  - Do not use `version:` in compose snippet
+- Git bootstrapping:
+  - Include `git init` path for fresh folder
+  - Add `.gitignore` creation before first `git add`
+  - Include guard for first-commit `HEAD` issue
+  - Include steps to avoid committing `node_modules`
+- CI file path creation:
+  - Explicitly create `.github/workflows` before `ci-cd.yml`
+- K8s dependency-safe order:
+  - namespace -> secrets/configmaps -> db -> api -> web-ui
+  - include exact commands and rollout waits
+- Service-name reality checks:
+  - Always instruct users to confirm actual names via `kubectl get svc -n kitchen-app`
+  - Use current names where applicable (`api-nodeport`, `api`, `web-ui-service`, `prometheus-service`, `grafana-service`)
+  - Warn not to run placeholders like `<actual-web-ui-service-name>` literally
+- Port-forward behavior:
+  - Explicitly state: run each port-forward in separate terminal and keep open
+  - Mention endpoint stops if terminal closes
+  - Include Ctrl+C exit note for watch/forward commands
+- Monitoring order fix:
+  - Apply `k8s/monitoring/prometheus-config.yaml`
+  - Apply `k8s/monitoring/grafana-dashboard.yaml`
+  - Then apply `k8s/monitoring/grafana-deployment.yaml`
+- Grafana troubleshooting:
+  - If `configmap "grafana-dashboards" not found`, apply dashboard configmap then rollout restart
+- Metrics validation nuance:
+  - If Grafana panel shows 0/No data, verify in Prometheus first
+  - Include recommended counter query:
+    - `sum(increase(kitchen_orders_created_total[5m]))`
+  - Include target health check in Prometheus (`Status -> Targets` must be UP)
+- NodePort on Windows:
+  - Mention NodePort may fail on localhost with Docker Desktop
+  - Provide port-forward fallback commands
+
+4) Dynamic code-block explainer behavior:
+- Before each code block, show:
+  - What
+  - Why
+  - How
+  - Verify
+- These must be context-aware (file/phase specific), not generic.
+- Ensure Prometheus/Grafana blocks do not accidentally reuse API deployment descriptions.
+
+5) Command accuracy:
+- Provide OS-specific command variants where needed.
+- Use PowerShell syntax for Windows blocks.
+- Ensure all commands are runnable and in correct sequence.
+- Include “expected output” style verification criteria after critical steps.
+
+6) Troubleshooting section (must be explicit copy-paste):
+- CreateContainerConfigError
+- ImagePullBackOff / ErrImagePull / ErrImageNeverPull
+- Probe failures
+- Mongo not ready
+- Service NotFound
+- Namespace NotFound
+- Empty/invalid YAML (`no objects passed to apply`)
+- Grafana rollout timeout / failed mount configmap
+- JSON parsing errors from wrong PowerShell quoting
+- “not a git repository”
+- push rejected (remote main has history) and safe branch/PR approach
+
+7) Final quality bar:
+- No placeholders left unresolved.
+- No condensed snippets for critical files (especially web-ui and dashboard definitions).
+- Student should be able to execute end-to-end from a fresh folder with no ambiguity.
+- Keep wording instructional and deterministic.
+
+After generating `docs/STUDENT_GUIDE.html`, self-check:
+- verify all phase commands are dependency-correct
+- verify Windows POST examples use PowerShell-safe syntax
+- verify monitoring order is dashboard-before-grafana-deployment
+- verify CI folder creation is included
+- verify `.gitignore` and Git-first-commit guidance is included
+- verify all `port-forward` commands explicitly say separate terminal
