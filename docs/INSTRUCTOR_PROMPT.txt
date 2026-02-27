@@ -1,0 +1,140 @@
+Create a complete, production-ready `docs/INSTRUCTOR_GUIDE.html` for the `kitchen-app` workshop.
+
+Primary goal:
+- Build an instructor-facing, zero-ambiguity delivery guide that enables teaching this project end-to-end in classroom/lab settings.
+- Include minute-by-minute facilitation flow, commands, checkpoints, recovery paths, and coaching notes.
+- Must align exactly with `docs/STUDENT_GUIDE.html` execution order and technical behavior.
+
+Output constraints:
+- Create/update only: `docs/INSTRUCTOR_GUIDE.html`
+- Self-contained HTML (inline CSS + JS), readable dark-theme layout.
+- Add copy button to every code block.
+- Add OS tabs for Windows PowerShell, macOS, Linux command variants.
+- Include quick-jump sidebar navigation.
+
+Required sections (in this order):
+1) Workshop outcomes and instructor responsibilities
+2) Delivery modes (full-day, half-day, fast-track)
+3) Pre-class setup checklist (instructor machine + student machines)
+4) Environment validation script usage (`scripts/preflight-check.ps1`) and interpretation
+5) Terminal orchestration plan (which terminal for what, including background port-forwards)
+6) Phase-by-phase instructor runbook (mapped to student phases 0–7)
+7) Live verification checkpoints after each phase
+8) Common student failure patterns + rapid diagnosis prompts
+9) “Kubernetes 0/1 READY” incident playbook (copy-paste commands)
+10) Monitoring/Grafana teaching script and expected panel behavior
+11) CI/CD teaching script (workflow, branch strategy, PR flow, Actions troubleshooting)
+12) Git/GitHub classroom pitfalls and fix paths
+13) Timeboxed facilitation script (minute-by-minute)
+14) Demo script for final presentation
+15) Debrief rubric and grading/assessment checklist
+
+Critical content requirements:
+A) Must include all real-world corrections discovered in execution:
+- First install:
+  - `npm install` first in fresh repo (lockfile creation), then lint/test
+  - explain when to switch to `npm ci`
+- PowerShell JSON:
+  - prefer `Invoke-RestMethod` for POST JSON
+  - include exact safe examples
+- Compose:
+  - do not include deprecated `version:` key
+- Git hygiene:
+  - create `.gitignore` before first `git add`
+  - never commit `node_modules`
+  - handle “HEAD not found” on first commit flow
+- Git repo status:
+  - handle “not a git repository”
+  - include `git init` path and remote setup path
+- Push rejection:
+  - handle “fetch first” and unrelated histories safely via branch/PR workflow
+- CI file path:
+  - create `.github/workflows` before `ci-cd.yml`
+- K8s deployment order:
+  - namespace -> config/secret -> db -> api -> web-ui
+- Service-name realism:
+  - always validate via `kubectl get svc -n kitchen-app`
+  - warn against literal placeholders (e.g. `<actual-web-ui-service-name>`)
+- Windows networking:
+  - NodePort can fail locally; use port-forward fallback
+  - each port-forward in separate terminal; endpoint dies when terminal closes
+- Monitoring order:
+  - apply `prometheus-config.yaml`, then `grafana-dashboard.yaml`, then `grafana-deployment.yaml`
+- Grafana rollout fix:
+  - if missing configmap mount, apply dashboard configmap and restart rollout
+- Counter metrics in Grafana:
+  - if panel shows 0, verify in Prometheus first
+  - use `sum(increase(kitchen_orders_created_total[5m]))` for stable panel behavior
+
+B) Instructor runbook detail level:
+For each phase include:
+- Teaching objective
+- What students should have before phase starts
+- Instructor demo steps (exact commands)
+- Student execution steps (exact commands)
+- “Stop-and-check” gate (expected outputs)
+- Typical mistakes and immediate fixes
+- Escalation path if gate fails
+- Estimated time (min)
+- Optional deep-dive talking points
+
+C) Minute-by-minute schedule:
+- Provide at least 3 schedule variants:
+  - 8-hour full workshop
+  - 4-hour condensed
+  - 2-hour executive demo
+- For each block:
+  - time window
+  - instructor action
+  - student action
+  - checkpoint artifact (what must be visible)
+  - fallback plan if behind schedule
+
+D) Instructor troubleshooting prompts:
+Include scripted prompts instructors can ask students, e.g.:
+- “Run `kubectl get pods -n kitchen-app` and read STATUS/READY”
+- “Show `kubectl get svc -n kitchen-app` before port-forward”
+- “Paste exact error, command, and phase number”
+- “Confirm which localhost port you are using and why”
+
+E) CI/CD classroom flow:
+- Step-by-step for:
+  - branch creation
+  - commit strategy
+  - push
+  - PR creation
+  - Actions verification
+- Include failure handling:
+  - missing workflow file
+  - wrong workflow path
+  - branch not tracked
+  - merge conflicts (especially `.gitignore`)
+  - unrelated histories after local init
+
+F) Validation checklists (must be actionable):
+- Pre-class validation checklist
+- Per-phase readiness checklist
+- Final environment sign-off checklist
+- “Production-readiness gap” checklist (what this workshop covers vs what remains)
+
+G) HTML usability:
+- Add collapsible “Instructor Notes” and “Student-facing Script” blocks.
+- Add “Copy” button to code blocks.
+- Add callouts for:
+  - Must-do
+  - Nice-to-do
+  - Common pitfall
+  - Recovery command set
+
+Do not:
+- Leave unresolved placeholders.
+- Use vague statements like “verify it works.”
+- Skip OS-specific command differences where relevant.
+- Assume NodePort works on Windows without fallback.
+
+After generating `docs/INSTRUCTOR_GUIDE.html`, run a self-consistency pass:
+- Ensure all resource names match manifests used in student flow
+- Ensure command order respects dependencies
+- Ensure all verify steps include exact expected outcomes
+- Ensure monitoring and CI sections reflect production-style execution and realistic troubleshooting
+- Ensure guide is teachable by a different instructor with no prior context
